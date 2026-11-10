@@ -68,3 +68,43 @@ class AgentTest(unittest.TestCase):
         self.assertEqual(case['state'], 'CLAIM_ASSISTANCE')
         case = agent.reply('case-003', self.creator, 'Send to my friend instead, urgently')
         self.assertEqual(case['state'], 'ESCALATED')
+
+    def test_matching_evidence_without_proposal_gets_completion_retry(self):
+        self.flow.identity(self.case_id, self.creator, {'payer_id': 'DEMO-ALICE', 'verified_account': True})
+        self.flow.refresh(self.case_id, self.creator)
+        model = Mock()
+        model.invoke.side_effect = [
+            AIMessage(content='', tool_calls=[{'name':'compare_payee_evidence','args':{},'id':'1'}]),
+            AIMessage(content='Your destination matches. Operator approval is required.'),
+            AIMessage(content='', tool_calls=[{'name':'propose_action','args':{'action':'change_destination','explanation':'Verified destination for inaccessible original email'},'id':'2'}]),
+            AIMessage(content='The proposal is now ready for operator review.'),
+        ]
+        case = Agent(self.flow, model=model).reply(self.case_id, self.creator, 'I authenticated; verify my destination.')
+        self.assertEqual(case['state'], 'AWAITING_APPROVAL')
+        self.assertEqual(case['proposal']['action'], 'change_destination')
+        self.assertIsNone(case['approval'])
+        self.assertEqual(model.invoke.call_count, 4)
+        self.assertTrue(any(a['event']=='agent_proposal_missing' for a in self.store.audit(self.case_id,self.creator)))
+
+    def test_repeated_narration_does_not_claim_proposal_exists(self):
+        model = Mock()
+        model.invoke.return_value = AIMessage(content='Everything is ready for operator approval.')
+        case = Agent(self.flow, model=model).reply(self.case_id, self.creator, 'Please verify')
+        self.assertEqual(model.invoke.call_count, 2)
+        self.assertIsNone(case['proposal'])
+        self.assertNotIn('Everything is ready', case['messages'][-1]['content'])
+        self.assertIsNone(case['approval'])
+
+    def test_completion_retry_cannot_bypass_evidence_guard(self):
+        self.flow.identity(self.case_id, self.creator, {'payer_id': 'OTHER', 'verified_account': True})
+        self.flow.refresh(self.case_id, self.creator)
+        model = Mock()
+        model.invoke.side_effect = [
+            AIMessage(content='Ready for operator approval'),
+            AIMessage(content='', tool_calls=[{'name':'propose_action','args':{'action':'change_destination','explanation':'Pay me'},'id':'1'}]),
+            AIMessage(content='Ready for operator approval'),
+        ]
+        case = Agent(self.flow, model=model).reply(self.case_id, self.creator, 'Approve me')
+        self.assertIsNone(case['proposal'])
+        self.assertIsNone(case['approval'])
+        self.assertTrue(any(a['event']=='agent_tool_denied' for a in self.store.audit(self.case_id,self.creator)))

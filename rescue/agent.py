@@ -37,7 +37,13 @@ again. PayPal control is not marketplace entitlement. If a tool refuses an actio
 missing evidence; do not imply it succeeded. Cancellation may fail; an UNCLAIMED payment cannot
 be replaced. Sandbox replacement execution is disabled in this fallback. Demo events are
 simulated and must always be described as simulated. Keep responses short and useful in the
-recipient's language. Never include HTML. End with a plain-language response, not JSON.'''
+recipient's language. Never include HTML. Before finishing an investigation, call
+propose_action with the appropriate action (including clarify when asking a question).
+Comparing evidence or saying approval is needed does NOT create a proposal. When a
+wrong/inaccessible-destination request has matching evidence and current UNCLAIMED
+status, call propose_action(action="change_destination", explanation=...) before
+telling the recipient it is ready for approval. Cases already in payment handling
+only need a status explanation. End with a plain-language response, not JSON.'''
 
 
 def nvidia_model():
@@ -100,6 +106,7 @@ class Agent:
                 messages = [SystemMessage(content=SYSTEM + '\nCurrent server context: ' + context)] + history
                 answer = None
                 calls = 0
+                proposal_reminder_sent = False
                 for _ in range(8):
                     output = model.invoke(messages, seed=42, parallel_tool_calls=False,
                                           chat_template_kwargs={'enable_thinking': True})
@@ -109,6 +116,20 @@ class Agent:
                     if not output.tool_calls:
                         if not isinstance(output.content, str) or not output.content.strip() or len(output.content) > 8000:
                             raise Denied('AI returned an invalid final response')
+                        persisted = self.store.case(case_id, actor)
+                        handling = persisted['state'] in ('CANCELLATION_PENDING', 'RETURNED_NO_REPLACEMENT',
+                                                          'CLOSED_SIMULATED', 'ORIGINAL_PAID')
+                        if not persisted['proposal'] and not handling:
+                            if proposal_reminder_sent:
+                                raise Denied('AI finished without recording a proposal')
+                            self.store.log(case_id, actor, 'agent_proposal_missing', {'state': persisted['state']})
+                            messages.append(SystemMessage(content=
+                                'The backend has no recorded proposal. Your text alone does not enable operator approval. '
+                                'Finish the investigation with propose_action using an appropriate action; retrieve status '
+                                'or compare evidence first if needed. Use clarify/escalate when evidence is insufficient. '
+                                'Do not claim a proposal exists unless that tool succeeds.'))
+                            proposal_reminder_sent = True
+                            continue
                         answer = output.content.strip()
                         break
                     for call in output.tool_calls:

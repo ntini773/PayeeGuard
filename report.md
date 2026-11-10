@@ -42,7 +42,7 @@ webhook fallback. Sponsor services and hosting were not added.
 
 ## Verification
 
-- **PASS:** `pixi run test` — 47 Python tests and UI render checks using a DOM double.
+- **PASS:** `pixi run test` — 50 Python tests and UI render checks using a DOM double.
 - **PASS:** JavaScript syntax and Python compilation checks.
 - **PASS:** `pixi lock --check` — existing lock remains valid; no new dependencies.
 - **PASS:** HTTP handlers tested end to end through an in-memory request/response
@@ -101,3 +101,25 @@ evaluation from a terminal with service access. Production SSO/marketplace
 records, public deployment, cryptographic audit hardening and reliable sandbox
 cancellation are not claimed. The implemented fallback remains safe and explicit
 about those limits.
+
+## Missing approval button: diagnosed and fixed
+
+The user's actual sandbox app case had matching, verified PayPal evidence and
+UNCLAIMED status, but remained INVESTIGATING with no proposal. The live agent
+called compare_payee_evidence and then narrated that approval was required,
+without invoking propose_action. The UI correctly withheld approval controls.
+
+The agent now explicitly requires a recorded resolution proposal before ending
+an investigation. When it produces prose without one, the tool loop gives it one
+bounded correction opportunity; repeated omission returns an incomplete-
+investigation response rather than claiming approval readiness. Payment-handling
+states remain exempt from new proposals, and all evidence/approval guards remain
+in force. The operator UI now explains when no proposal exists.
+
+Regression tests cover correction to AWAITING_APPROVAL, persistent omission, and
+attempts to bypass mismatched-evidence checks. All 50 Python tests and UI render
+checks pass. The user's existing case and approvals were not edited or fabricated.
+Restart the app and ask the assistant to prepare the proposal to exercise the
+fix against the live model. Live case evidence also demonstrates the web login
+and model investigation paths were exercised; full browser/layout QA and the
+six-case actual-model evaluation remain unverified here.

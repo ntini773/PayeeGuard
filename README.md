@@ -130,7 +130,7 @@ credentials into this prototype. Node 22/Python 3.11/ChatNVIDIA 1.4.3 remain loc
 ## Verification commands
 
 ```sh
-pixi run test            # 47 Python tests + DOM-double UI render checks; no network
+pixi run test            # 50 Python tests + DOM-double UI render checks; no network
 pixi run diagnose-ai     # Actual NVIDIA inference/JSON connectivity
 pixi run evaluate-agent  # Six actual NVIDIA tool-loop cases; PayPal simulated
 pixi run probe access    # Actual sandbox OAuth only

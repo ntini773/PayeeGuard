@@ -95,7 +95,7 @@ function render(data) {
   show('auth-actions', canAuth); show('mismatch', canAuth && demo);
   text('authenticate', demo ? 'Simulate matching PayPal login' : 'Authenticate PayPal ↗');
   show('approval-actions', operator && c.state === 'AWAITING_APPROVAL');
-  text('approval-note', c.approval ? `${c.approval.approved ? 'Approved' : 'Rejected'} by ${c.approval.operator}. Approval is bound to this destination and proposal.` : operator ? 'Approval requires sufficient evidence and a current proposal.' : 'Your marketplace operator reviews and approves any destination change.');
+  text('approval-note', c.approval ? `${c.approval.approved ? 'Approved' : 'Rejected'} by ${c.approval.operator}. Approval is bound to this destination and proposal.` : operator ? (c.proposal ? 'Approval requires sufficient evidence and a destination-change proposal.' : 'No proposal has been recorded yet. The recipient must ask the assistant to prepare a destination-change proposal; a chat statement alone is not an approval request.') : 'Your marketplace operator reviews and approves any destination change.');
   show('cancel-payout', operator && c.state === 'APPROVED');
   text('cancel-payout', demo ? 'Simulate cancellation failure' : 'Attempt original cancellation (sandbox)');
   show('cancellation-result', !!c.cancellation_error || c.state === 'CANCELLATION_PENDING' || c.state === 'RETURNED_NO_REPLACEMENT');
