@@ -179,3 +179,18 @@ user run and persisted evidence. Automated real-browser/layout QA and the full
 six-case NVIDIA evaluation remain outstanding. Next demonstrate the isolated
 simulation branch and the claim-assistance/third-party escalation scenarios;
 leave the unresolved sandbox case intact.
+
+## Simulated recovery verified in the UI
+
+The user completed the explicit demo recovery action. Read-only database inspection
+confirms demo case-001 is CLOSED_SIMULATED, original status is simulated RETURNED,
+and its single replacement is SIMULATED_SUCCESS for USD 0.01 with simulated=true.
+The UI displayed the simulated cancellation failure as preceding the simulated
+recovery and explicitly stated that no PayPal funds moved.
+
+The separate sandbox case remains CANCELLATION_PENDING / UNCLAIMED with
+replacement=null. The simulation did not alter the sandbox workflow or create a
+real replacement. The demonstrated paths now include real sandbox failure handling
+and explicitly labeled simulated recovery. The additional claim-assistance and
+third-party-escalation UI scenarios and full live NVIDIA evaluation remain separate
+checks; automated tests already cover their deterministic/demo behaviors.
