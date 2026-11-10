@@ -12,6 +12,11 @@ below applies that guide to this UI revamp; it does not authorize installing eve
 listed service. No sponsor logos, promotional badges, or sponsor showcase sections
 are requested. Every dependency must solve a named user or engineering task.
 
+Latest sequencing: the user authorized Postman testing, APIMatic review and Render
+hosting (ClaimPal, PayPal sandbox + NVIDIA) **before UI work**. See
+[integration status and setup](integrations/README.md). AG Studio remains for the
+later UI phase. Do not mistake prepared configuration for a deployed service.
+
 ## Product truth and demonstrated behavior
 
 A marketplace recipient reports an inaccessible/wrong payout address, authenticates

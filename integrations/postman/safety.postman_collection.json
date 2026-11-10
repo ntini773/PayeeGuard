@@ -1,0 +1,769 @@
+{
+  "info": {
+    "name": "Payout Rescue \u2014 isolated safety regression",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8765"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if(pm.variables.get(\"baseUrl\")!==\"http://127.0.0.1:8765\"){throw new Error(\"Local isolated fixture only\");}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Require isolated demo",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/session"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }",
+              "const d=pm.response.json(); pm.test(\"Synthetic fixture only\",()=>{pm.expect(d.mode).to.eql(\"demo\");pm.expect(d.ai_mode).to.eql(\"scripted demo\");}); if(d.mode!==\"demo\" || d.ai_mode!==\"scripted demo\"){pm.execution.setNextRequest(null);throw new Error(\"Requires fixture demo\");}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Anonymous case denied",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "if (pm.response.code !== 403) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Log in creator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"creator\", \"password\": \"{{creatorPassword}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Session creator",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/session"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }",
+              "const d=pm.response.json(); pm.collectionVariables.set(\"csrf\",d.csrf); pm.test(\"Expected role\",()=>pm.expect(d.user.role).to.eql(\"recipient\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Missing CSRF denied",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/refresh",
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "if (pm.response.code !== 403) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify synthetic identity",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/simulate-auth",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"account\": \"match\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Submit correction proposal",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/request-review",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"reason\": \"Original synthetic address is inaccessible\", \"confirmed\": true}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }",
+              "const c=pm.response.json().case;pm.test(\"Review required\",()=>pm.expect(c.state).to.eql(\"AWAITING_APPROVAL\"));pm.collectionVariables.set(\"version\",c.version);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recipient cannot approve",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/approve",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"version\": {{version}}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "if (pm.response.code !== 403) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recipient cannot simulate recovery",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/simulate-recovery",
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "if (pm.response.code !== 403) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logout creator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/logout",
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Log in operator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"operator\", \"password\": \"{{operatorPassword}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Session operator",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/session"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }",
+              "const d=pm.response.json(); pm.collectionVariables.set(\"csrf\",d.csrf); pm.test(\"Expected role\",()=>pm.expect(d.user.role).to.eql(\"operator\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stale approval denied",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/approve",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"version\": -1}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "if (pm.response.code !== 403) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approve exact proposal",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/approve",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"version\": {{version}}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Claimable original blocks replacement",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/simulate-recovery",
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "if (pm.response.code !== 403) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Demonstrate cancellation failure",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/cancel",
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }",
+              "const c=pm.response.json().case;pm.test(\"Failure remains unresolved\",()=>{pm.expect(c.state).to.eql(\"CANCELLATION_PENDING\");pm.expect(c.replacement).to.eql(null);pm.expect(c.paypal_status).to.eql(\"UNCLAIMED\");});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Explicit simulated recovery",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/simulate-recovery",
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }",
+              "const c=pm.response.json().case;pm.test(\"Simulated only\",()=>{pm.expect(c.state).to.eql(\"CLOSED_SIMULATED\");pm.expect(c.replacement.simulated).to.eql(true);pm.expect(c.replacement.status).to.eql(\"SIMULATED_SUCCESS\");});pm.collectionVariables.set(\"replacement\",c.replacement.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recovery replay is idempotent",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-001/simulate-recovery",
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }",
+              "pm.test(\"Same synthetic replacement\",()=>pm.expect(pm.response.json().case.replacement.id).to.eql(pm.collectionVariables.get(\"replacement\")));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logout operator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/logout",
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Log in creator",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"creator\", \"password\": \"{{creatorPassword}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Session creator",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/session"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }",
+              "const d=pm.response.json(); pm.collectionVariables.set(\"csrf\",d.csrf); pm.test(\"Expected role\",()=>pm.expect(d.user.role).to.eql(\"recipient\"));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mismatched identity",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-003/simulate-auth",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"account\": \"mismatch\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mismatched correction denied",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cases/case-003/request-review",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"reason\": \"Redirect to a different person\", \"confirmed\": true}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 403\", () => pm.response.to.have.status(403));",
+              "if (pm.response.code !== 403) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/logout",
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "if (pm.response.code !== 200) { pm.execution.setNextRequest(null); throw new Error(\"Unexpected status; stopping fixture run\"); }"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

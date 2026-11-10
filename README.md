@@ -149,7 +149,7 @@ credentials into this prototype. Node 22/Python 3.11/ChatNVIDIA 1.4.3 remain loc
 ## Verification commands
 
 ```sh
-pixi run test            # 59 Python tests + DOM-double UI render checks; no network
+pixi run test            # Python tests + DOM-double UI render checks; no network
 pixi run diagnose-ai     # Actual NVIDIA inference/JSON connectivity
 pixi run evaluate-agent  # Six actual NVIDIA tool-loop cases; PayPal simulated
 pixi run probe access    # Actual sandbox OAuth only
@@ -177,12 +177,17 @@ Only the five tools in TASK.md are exposed to NVIDIA. SDK errors are redacted.
 
 SQLite audit rows cannot be updated/deleted through the database's normal SQL
 interface (triggers); this is not cryptographic tamper-proof storage. An owner
-with filesystem access can replace the database. This server is loopback-only,
-uses HTTP cookies for local testing and must not be exposed publicly as-is.
-No webhook endpoint, sponsor service or deployment was added; selected-case
+with filesystem access can replace the database. This server defaults to loopback
+HTTP for local testing. Explicit hosted configuration uses a fixed HTTPS origin
+and Secure cookies behind Render's TLS edge. See the prototype deployment limits
+in [the integration guide](integrations/README.md).
+No webhook endpoint or live sponsor service has been deployed; selected-case
 polling is the allowed fallback. Real replacement execution remains deferred.
 
 ## UI revamp handoff
+
+Integration setup comes first; UI work follows. Postman, APIMatic and Render
+setup/status are documented in [integrations/README.md](integrations/README.md).
 
 [ui.md](ui.md) describes the requested redesign, PayPal identity-button branding,
 AG Studio's possible operator value, API/state contracts and regression checks.

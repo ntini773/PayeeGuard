@@ -214,3 +214,26 @@ identity-button branding, and an AG Studio assessment grounded in official spons
 and product documentation. Sponsor integration must perform useful operator tasks;
 no new sponsor library or branded PayPal button was installed in this patch.
 The handoff preserves API/auth/financial invariants and calls for real-browser QA.
+# Sponsor integration preparation — ClaimPal (2026-11-10)
+
+The user authorized Postman testing, APIMatic development-time API review and
+Render hosting before further UI work. Hosted target is PayPal sandbox + real
+NVIDIA, repository `ntini773/ClaimPal`, branch `main`. No real replacement endpoint
+was added and no new payout/cancellation was attempted.
+
+- Added a 24-request Postman safety collection and disposable demo runner
+  (`pixi run test-postman`). CLI 1.87.0 is installed; actual run blocked at socket
+  startup in the restricted agent environment. Request replay through real HTTP
+  handlers and JavaScript syntax checks passed; these are not Postman execution.
+- APIMatic installation attempted with its official installer; npm DNS failed
+  with EAI_AGAIN. Prepared a source/version review brief; do not claim plugin use.
+- Added Render blueprint for one paid service and persistent SQLite disk, fixed
+  HTTPS origin checks, Secure cookies, matching hosted OAuth callback, health
+  endpoint and bootstrap preserving existing storage. Deployment is not yet live;
+  account connection, secrets, callback registration and hosted smoke checks remain.
+- Existing 62 Python tests and UI render checks passed after origin/cookie/OAuth
+  changes; two additional bootstrap tests passed separately (64 Python total).
+- LangChain ChatNVIDIA is already used. SQLite owns scoped conversation/case state;
+  Elastic retrieval is not required and was not added.
+
+Setup, limitations and actual verification status: [integrations/README.md](integrations/README.md).
