@@ -42,7 +42,7 @@ network solve. No environment symlink or fake installation was substituted.
 | 1. US Business sender and Payouts access | User confirms app setup and supplied `oauth: PASS`; Payouts access still requires a successful Payouts request | OAuth PASS; Payouts UNVERIFIED |
 | 2. Real unregistered-recipient UNCLAIMED payout | No successful API connection; no chosen unregistered test destination | NOT RUN |
 | 3. Login returns payer ID and account verification | User supplied login output with payer ID and verified_account string "true" | PASS in user terminal |
-| 4. Authenticated PAYPAL_ID payout reaches SUCCESS | User ran create-payer payer-01; PayPal returned HTTP 403 | BLOCKED; exact error pending |
+| 4. Authenticated PAYPAL_ID payout reaches SUCCESS | User ran create-payer payer-01; PayPal returned HTTP 403 | BLOCKED: PAYOUT_NOT_AVAILABLE |
 | 5. Separate unclaimed payout cancellation reaches RETURNED | Cancellation runner implemented; no live unclaimed item available | NOT RUN |
 | 6. Dashboard fallback if API cancellation fails | Requires sandbox sender browser session; no actual cancellation failure tested yet | NOT RUN / conditional |
 
@@ -109,3 +109,20 @@ client now exposes only validated error-name and debug-ID fields, while keeping
 messages, recipient details and tokens suppressed. All 17 tests pass, including
 redaction and malformed-body checks. Retry `pixi run probe create-payer payer-01`
 to collect the error name using the same persisted sender batch ID.
+
+## Identified payout refusal
+
+The user retried the same experiment and received HTTP 403 with error name
+`PAYOUT_NOT_AVAILABLE` (debug ID `f914693cee821`). Sender-country eligibility is
+the leading diagnosis, pending inspection of the app-linked sender account.
+PayPal's official country table lists India as receive-and-withdraw only, which
+does not permit sending payouts. Inspect the linked account country; if needed,
+create a United States Business sandbox account and a Merchant app linked to it.
+Store new app credentials in ignored `payout_rescue/.env` so Counteroffer remains
+unchanged. Configure login on that app and authenticate the same recipient again
+before retrying the existing experiment. Do not delete prior experiment evidence.
+If the sender is already US Business, use the debug ID with PayPal support to
+investigate account eligibility rather than assuming the country is wrong.
+
+Sources: https://developer.paypal.com/payouts/supported-features/ and
+https://developer.paypal.com/sandbox-testing/accounts (checked 2026-11-10).
