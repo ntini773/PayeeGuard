@@ -12,7 +12,9 @@ nodejs = "22.*" # Matches the reusable setup.md environment and lock.
 langchain-nvidia-ai-endpoints = "==1.4.3"
 
 [tasks]
-test = "python -m unittest discover -s tests -v"
+test-python = "python -m unittest discover -s tests -v"
+test-ui = "node tests/test_ui.cjs"
+test = { depends-on = ["test-python", "test-ui"] }
 probe = "python -m rescue.cli"
 diagnose-ai = "python -m rescue.ai"
 

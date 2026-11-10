@@ -1,103 +1,164 @@
-# Payout Rescue — feasibility core
+# Payout Rescue
 
 Nobody can change where your payout goes just by asking.
 
-This repository implements the **first sandbox experiments in TASK.md §5**, using
-`TASK.md` over the older `PROJECT.md`. It is not yet the recovery application.
-See [report.md](report.md) for verified results and remaining gates.
+The Section 5 fallback in `TASK.md` is implemented: recipient identity and
+PayPal destination verification, a constrained investigation agent, operator
+approval, and safe cancellation-failure handling. Sandbox replacement sending
+is disabled. A separate demo mode explicitly simulates RETURNED/replacement.
+See [report.md](report.md) for implementation evidence and verification limits.
 
-## Setup
+## Run the app
+
+This workspace already has both sandbox and demo databases initialized. Start:
+
+```sh
+pixi run start
+```
+
+Open **http://127.0.0.1:8765** (use `127.0.0.1`, not `localhost`). Read your private
+local marketplace credentials in your terminal:
+
+```sh
+cat .runtime/sandbox-accounts.json
+```
+
+Sign in as `creator` in one browser profile and `operator` in another (for
+example, an incognito window). Each account has its own generated password.
+These are local marketplace prototype accounts, not PayPal accounts.
+
+The configured sandbox case references the existing unclaimed item
+`U8ZN7X3NYLJAG`. Its established expected payer ID is the test recipient already
+used in the feasibility experiment. **This marketplace entitlement record is a
+manually seeded fixture, not evidence of a real marketplace's entitlement.**
+Both UI and audit distinguish this fixture from real PayPal authentication.
+
+### Recipient journey
+
+1. Sign in as `creator`, open case-001 and describe the inaccessible original
+   email. NVIDIA can retrieve the item/payee record and ask for authentication.
+2. Click **Authenticate PayPal** and log into the intended **Personal recipient**
+   sandbox account. The app must have Log in with PayPal enabled with account
+   verification/payer-ID attributes and return URL:
+   `http://127.0.0.1:8765/callback`.
+3. After returning, tell the assistant: “I authenticated; verify my destination.”
+   A matching, verified payer ID can produce a destination-change proposal.
+   A mismatched account is escalated. Typed names/emails never update the record.
+4. The operator reviews the proposal in a separate marketplace session.
+
+### Operator journey
+
+1. Sign in as `operator`. Inspect status, amount, original item, recipient
+   messages, established record, authenticated evidence and the tool/audit trail.
+2. Approve or reject the current proposal. An outdated review is rejected.
+   A new recipient message or reauthentication invalidates prior approval.
+3. **Attempt original cancellation** is available only after eligible approval.
+   This makes a real sandbox cancellation request. The backend retrieves fresh
+   UNCLAIMED status first, then retrieves again after the attempt, including
+   HTTP failure/timeouts. It records the error and leaves an unresolved case
+   in CANCELLATION_PENDING. It never automatically retries cancellation.
+4. Refresh to reconcile. The active page polls local state every 5 seconds and
+   PayPal status every 30 seconds; **Refresh status** is also available. Polling
+   does not cancel or send money. Background tracking stops when the page closes.
+5. Even if a real item eventually becomes RETURNED, this fallback stops at
+   RETURNED_NO_REPLACEMENT. There is no web/API action to send a real replacement.
+
+Claim assistance and attempted third-party redirection take different paths:
+claim guidance preserves the original; a friend/third-party request is escalated.
+Unknown unclaimed causes remain unknown. The exact provider reason, when
+available, distinguishes unregistered recipients from unconfirmed details.
+
+## Explicit offline demonstration
+
+Stop the sandbox server before starting demo mode (both use port 8765):
+
+```sh
+pixi run demo
+cat .runtime/demo-accounts.json
+```
+
+Demo mode has separate cases/database, synthetic PayPal data and **scripted AI**.
+The persistent banner and messages explicitly label this. It makes no NVIDIA or
+PayPal requests. This is useful for demonstrating UI and deterministic rules;
+it is not evidence of model quality or successful payment recovery.
+
+- case-001: say “My old email is inaccessible”, click **Simulate matching PayPal
+  login**, then say “I authenticated; verify my destination”. As operator approve,
+  click **Simulate cancellation failure**, then **Simulate RETURNED + replacement**.
+  The latter only updates synthetic records with `SIM-` IDs and `SIMULATED_SUCCESS`.
+- case-002: say “I can access my original email but cannot claim the payment.”
+- case-003: say “Send it to my friend's PayPal account instead. It's urgent.”
+- **Simulate mismatched account** demonstrates refusal to match a different payer.
+
+The simulation endpoints are denied in sandbox mode. Demo provider wiring cannot
+be mixed with the sandbox provider. Repeated simulated recovery returns the
+existing synthetic replacement, not a new one.
+
+To use real NVIDIA with simulated PayPal data, explicitly run:
+
+```sh
+pixi run python -m rescue.app serve --mode demo --ai nvidia
+```
+
+## Fresh checkout setup
 
 ```sh
 pixi install --locked
 pixi run test
-pixi run diagnose-ai
-pixi run probe access
+pixi run configure-demo
 ```
 
-Python 3.11 and ChatNVIDIA 1.4.3 follow `../setup.md`. The lock initially came
-from Counteroffer's matching dependencies and was validated with `pixi lock --check`.
-Node 22 is retained to match that reusable environment; this milestone has no UI.
+For sandbox, initialize once using a trusted marketplace record and an existing
+payout item. The configured amount and currency must exactly match that item:
 
-Credentials load from `../counteroffer/.env`, then optional local `.env`, then
-process environment (highest priority). Required variables: `PAYPAL_CLIENT_ID`,
-`PAYPAL_CLIENT_SECRET`, and `AI_API_KEY` or `NVIDIA_API_KEY`. No secrets are copied
-or committed. Both service endpoints and the NVIDIA model are fixed to the setup
-values; PayPal is always sandbox, regardless of `PAYMENT_MODE`.
+```sh
+pixi run configure-app --item-id YOUR_ORIGINAL_ITEM_ID --expected-payer-id YOUR_ESTABLISHED_PAYEE_PAYER_ID --amount 0.01 --currency USD
+```
 
-## Run the six gates in order
+Initialization refuses to overwrite an existing database. Credentials are saved
+privately in `.runtime/<mode>-accounts.json`; databases and keys are ignored by
+Git. Preserve `.runtime` between runs. Do not reset experiments to bypass a timeout.
+The app uses a process lock and loopback binding; run one local server per mode.
+Do not run the earlier `probe login` listener concurrently with the web app.
 
-All create commands send **USD 0.01 sandbox payouts**, never real funds. Names
-identify durable experiments; reuse the same name to retry an uncertain request.
-Do not delete `.runtime` or choose a new name to work around a timeout. Different
-names mean different payouts. The payer-ID experiment is independent of the
-unclaimed experiment, not a replacement or recovery action.
+Configuration precedence is `../counteroffer/.env`, then `payout_rescue/.env`,
+then shell environment. PayPal uses `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`;
+NVIDIA uses `NVIDIA_API_KEY` or `AI_API_KEY`. No keys are copied into source.
+The sandbox base URL and NVIDIA model follow `../setup.md`. Do not put live
+credentials into this prototype. Node 22/Python 3.11/ChatNVIDIA 1.4.3 remain locked.
 
-1. In PayPal Developer Dashboard confirm the existing app belongs to a funded
-   US Business sandbox sender and has Payouts access. `probe access` only proves
-   OAuth; successful creation below proves Payouts access.
-2. Choose an email you control that is **not registered in the sandbox**:
+## Verification commands
 
-   ```sh
-   pixi run probe create-email unclaimed-01 YOUR_UNREGISTERED_TEST_EMAIL
-   pixi run probe batch BATCH_ID_FROM_RESPONSE
-   pixi run probe item ITEM_ID_FROM_BATCH
-   ```
+```sh
+pixi run test            # 47 Python tests + DOM-double UI render checks; no network
+pixi run diagnose-ai     # Actual NVIDIA inference/JSON connectivity
+pixi run evaluate-agent  # Six actual NVIDIA tool-loop cases; PayPal simulated
+pixi run probe access    # Actual sandbox OAuth only
+```
 
-   Poll batch/item explicitly until the item is `UNCLAIMED`. Any other status
-   does not pass this gate. Do not infer a reason unless PayPal returns one.
-3. Enable Log in with PayPal and the account verification / payer-ID attributes
-   for this app. Register `http://127.0.0.1:8765/callback` as the return URL.
-   Run locally on the machine where your browser runs:
+`evaluate-agent` checks inaccessible email, claim assistance, third-party
+redirection, Hindi input, a verified destination and an adversarial mismatch.
+It prints expected/actual state and tool traces, exits nonzero on failures, and
+never creates/cancels a real payment. A prior connectivity PASS does not prove
+these new conversational evaluations pass. The agent environment cannot run
+live calls or bind local sockets; run these checks from your own terminal.
 
-   ```sh
-   pixi run probe login
-   ```
+The historical [feasibility runbook](docs/feasibility_runbook.md) documents manual
+probe commands. Those are operator-only developer experiments, separate from
+web-app authorization. Never expose the CLI as an LLM or public API tool.
 
-   Open the printed URL and sign into the intended sandbox recipient account.
-   The listener expires after 180 seconds and checks a random single-use state.
-   It stores only payer ID and verification status, never OAuth tokens or codes.
-   This establishes account control, **not marketplace entitlement**.
-4. Use that authenticated identity:
+## Boundaries
 
-   ```sh
-   pixi run probe create-payer payer-01
-   pixi run probe batch BATCH_ID_FROM_RESPONSE
-   pixi run probe item ITEM_ID_FROM_BATCH
-   ```
+This is a local prototype, not a production marketplace auth integration. Passwords
+use scrypt; sessions are expiring server-side records; POSTs require same-origin
+JSON and CSRF tokens; OAuth state is expiring, session-bound and one-use. PayPal
+account matching is exact payer ID plus verification against the pre-existing
+fixture. Unknown/new payer IDs require manual review; names are never fuzzy-matched.
+Only the five tools in TASK.md are exposed to NVIDIA. SDK errors are redacted.
 
-   The gate passes only when the actual item reaches `SUCCESS`. An accepted
-   batch alone is insufficient. Typed payer IDs are not accepted by this command.
-5. Cancel the separate unclaimed item from step 2:
-
-   ```sh
-   pixi run probe cancel ORIGINAL_UNCLAIMED_ITEM_ID
-   ```
-
-   The tool fetches fresh state, requires `UNCLAIMED`, attempts cancellation,
-   then fetches again even after a transport/HTTP error. Only observed `RETURNED`
-   gives `gate_passed: true`. No replacement is created by cancellation.
-6. If API cancellation fails, sign into the sender's sandbox dashboard and try
-   manual cancellation for the **same item**. Record the observed result, then
-   run `probe item ITEM_ID` to independently check `RETURNED`. If still claimable,
-   report cancellation pending; do not send a replacement.
-
-Responses, IDs, timestamps and request payloads are recorded in ignored, private
-`.runtime/experiments.sqlite3`. Treat these as sensitive recipient data. Tokens
-and credentials are excluded. HTTP failures record the status code and validated error name/debug ID when
-available; other response fields are suppressed. The evidence table is append-only by application
-convention, not a tamper-proof audit store. Keep the database between runs.
-
-## Decision after the gates
-
-- Payer-ID `SUCCESS` and cancellation `RETURNED`: full flow becomes feasible.
-- Payer-ID succeeds but cancellation fails: identity-only demonstration; label
-  any simulated returned/replacement branch explicitly.
-- Payer-ID fails: investigate authenticated-email fallback before implementing it.
-- Both identity and payout fail: stop building the central promise.
-
-User approval is still required to build the application after this milestone:
-marketplace authentication and payee matching, proposals and approval, guarded
-replacement execution, webhooks/polling workers, agent tools, UI and hosting.
-The intended agent tool surface has only the five investigation/proposal tools
-in TASK.md; cancellation and replacement will not be LLM-callable tools.
+SQLite audit rows cannot be updated/deleted through the database's normal SQL
+interface (triggers); this is not cryptographic tamper-proof storage. An owner
+with filesystem access can replace the database. This server is loopback-only,
+uses HTTP cookies for local testing and must not be exposed publicly as-is.
+No webhook endpoint, sponsor service or deployment was added; selected-case
+polling is the allowed fallback. Real replacement execution remains deferred.
