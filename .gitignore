@@ -1,0 +1,5 @@
+.pixi/
+.env
+__pycache__/
+*.pyc
+.runtime/
