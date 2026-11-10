@@ -1,5 +1,10 @@
 # Payout Rescue
 
+**Current product direction: PayeeGuard.** Start with [SUMMARY.md](SUMMARY.md) for
+the latest status and [PROBLEM_STATEMENT.md](PROBLEM_STATEMENT.md) for the revised
+pitch. The runtime below remains the existing Payout Rescue prototype; the new
+different-account approval and future-payout flow is not yet implemented.
+
 Nobody can change where your payout goes just by asking.
 
 The Section 5 fallback in `TASK.md` is implemented: recipient identity and
