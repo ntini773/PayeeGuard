@@ -5,12 +5,11 @@ Date: 2026-11-10
 ## Outcome
 
 **Experiment tooling is built and locally tested. The user's terminal has now
-passed NVIDIA inference and PayPal OAuth; payout feasibility remains unproven.**
-Recipient login and payout batch creation have passed in the user's terminal.
-The accepted payout is PENDING; item SUCCESS and cancellation remain unproven.
+passed NVIDIA inference, PayPal OAuth, recipient login and an authenticated
+payer-ID payout reaching SUCCESS. Cancellation feasibility remains unproven.**
 The user confirmed the existing sandbox app is configured and may
-be used. Its server-side permissions and country have not been independently
-verified here.
+be used. Payouts access is demonstrated by the successful transaction; sender country
+is user-confirmed, not independently inspected in the dashboard.
 
 `TASK.md` supersedes `PROJECT.md`. Its final instruction is to prove payer-ID
 payouts and cancellation before building the rest. This milestone therefore
@@ -27,7 +26,7 @@ check, initial tests and runbook. The recovery application has not been built.
 | Initial tests | `pixi run test`: 17 tests passed | PASS, mocked network only |
 | Durable request identity | Restart-after-timeout test compares identical payloads; completed request not resent | PASS locally |
 | Cancel safety | Tests cover non-UNCLAIMED denial, cancel timeout, pending result, failed recheck, and returned confirmation | PASS locally |
-| PayPal identity scope handling | Mock test requires payer ID and verification attribute; tokens excluded from stored identity | PASS locally; browser flow unverified |
+| PayPal identity scope handling | Mock tests and user-provided login output containing payer ID and verification status | PASS locally and in user terminal |
 | Feature commits | Separate scaffold, probes/tests, environment lock, and documentation commits | Implemented |
 
 The environment initially denied writes to the shared Pixi cache. Using a
@@ -43,12 +42,12 @@ network solve. No environment symlink or fake installation was substituted.
 | 1. US Business sender and Payouts access | User confirms US sender; OAuth passed and PayPal accepted batch HVCBQC6NBW3PC | API access PASS; country user-confirmed |
 | 2. Real unregistered-recipient UNCLAIMED payout | No unregistered-recipient experiment reported yet | NOT RUN |
 | 3. Login returns payer ID and account verification | User supplied login output with payer ID and verified_account string "true" | PASS in user terminal |
-| 4. Authenticated PAYPAL_ID payout reaches SUCCESS | PayPal accepted batch HVCBQC6NBW3PC with batch_status PENDING | Creation PASS; item SUCCESS pending |
+| 4. Authenticated PAYPAL_ID payout reaches SUCCESS | Batch HVCBQC6NBW3PC and separate item retrieval for 4BV5LMRQQW65J both show item SUCCESS, recipient_type PAYPAL_ID, USD 0.01 | PASS in user terminal |
 | 5. Separate unclaimed payout cancellation reaches RETURNED | Cancellation runner implemented; no live unclaimed item available | NOT RUN |
 | 6. Dashboard fallback if API cancellation fails | Requires sandbox sender browser session; no actual cancellation failure tested yet | NOT RUN / conditional |
 
-The attempted PayPal call failed before any payout mutation. The attempted AI
-call returned a connection error. Errors were redacted; keys were neither
+Earlier calls from the agent environment failed on network access. Subsequent
+user-terminal results above supersede those failures for the demonstrated gates. Errors were redacted; keys were neither
 printed nor copied. This does not establish invalid credentials or failed
 PayPal product feasibility. Do not treat unit-test fixtures as sandbox evidence.
 
@@ -165,3 +164,18 @@ ID. This supersedes the earlier access blocker for the currently selected app.
 It proves batch acceptance, not completed payment. Retrieve the batch, then its
 item, and require item `SUCCESS` to pass gate 4. The exact configuration difference
 behind the previous country refusal has not been independently established.
+
+## Payer-ID gate passed
+
+The user supplied both batch and individual-item retrieval responses. Item
+`4BV5LMRQQW65J` in batch `HVCBQC6NBW3PC` has `transaction_status: SUCCESS`,
+`recipient_type: PAYPAL_ID`, and USD 0.01 sent to the same payer ID obtained
+through login. PayPal reports processing at `2026-11-10T00:52:42Z` and batch
+completion at `2026-11-10T00:52:49Z`. The reported sandbox fee is USD 0.25.
+This is actual provider output supplied by the user, not a mocked test result.
+
+Next create a separate USD 0.01 experiment addressed to an email controlled by
+the tester that is not registered in the PayPal sandbox. Verify UNCLAIMED before
+attempting cancellation and independently confirm RETURNED afterward. Do not
+attempt to cancel the successful payer-ID item. Keep the application build
+on hold until the cancellation experiment establishes the supported scope.
