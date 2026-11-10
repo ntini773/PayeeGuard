@@ -6,6 +6,7 @@ platforms = ["linux-64"]
 
 [dependencies]
 python = "3.11.*"
+nodejs = "22.*" # Matches the reusable setup.md environment and lock.
 
 [pypi-dependencies]
 langchain-nvidia-ai-endpoints = "==1.4.3"
