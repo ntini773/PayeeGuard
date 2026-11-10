@@ -4,10 +4,10 @@ Date: 2026-11-10
 
 ## Outcome
 
-**Experiment tooling is built and locally tested. Live feasibility remains
-unproven because outbound service connections are blocked in this environment.**
-No successful payout creation, recipient login, cancellation, or AI inference
-is claimed. The user confirmed the existing sandbox app is configured and may
+**Experiment tooling is built and locally tested. The user's terminal has now
+passed NVIDIA inference and PayPal OAuth; payout feasibility remains unproven.**
+No successful payout creation, recipient login, or cancellation is claimed.
+The user confirmed the existing sandbox app is configured and may
 be used. Its server-side permissions and country have not been independently
 verified here.
 
@@ -22,7 +22,7 @@ check, initial tests and runbook. The recovery application has not been built.
 | Requirement | Observed evidence | Result |
 |---|---|---|
 | Pixi setup following setup.md | `pixi install --locked`; `pixi lock --check`; `pixi run python --version` = Python 3.11.18 | PASS |
-| NVIDIA setup using existing private key | ChatNVIDIA 1.4.3, explicit model registration, 4096 tokens, validated final JSON; attempted actual inference | Configured; connection failed |
+| NVIDIA setup using existing private key | User supplied terminal output: `AI inference and JSON validation: PASS` | PASS in user's terminal |
 | Initial tests | `pixi run test`: 14 tests passed | PASS, mocked network only |
 | Durable request identity | Restart-after-timeout test compares identical payloads; completed request not resent | PASS locally |
 | Cancel safety | Tests cover non-UNCLAIMED denial, cancel timeout, pending result, failed recheck, and returned confirmation | PASS locally |
@@ -39,7 +39,7 @@ network solve. No environment symlink or fake installation was substituted.
 
 | Gate | Evidence / blocker | Status |
 |---|---|---|
-| 1. US Business sender and Payouts access | User confirms app setup. Actual OAuth probe reports transport failure; OAuth alone would not prove Payouts access | UNVERIFIED |
+| 1. US Business sender and Payouts access | User confirms app setup and supplied `oauth: PASS`; Payouts access still requires a successful Payouts request | OAuth PASS; Payouts UNVERIFIED |
 | 2. Real unregistered-recipient UNCLAIMED payout | No successful API connection; no chosen unregistered test destination | NOT RUN |
 | 3. Login returns payer ID and account verification | Interactive state-checked loopback login implemented; requires recipient browser login | NOT RUN |
 | 4. Authenticated PAYPAL_ID payout reaches SUCCESS | Creation uses identity returned by gate 3; no authenticated identity yet | NOT RUN |
