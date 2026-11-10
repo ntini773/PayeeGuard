@@ -139,3 +139,9 @@ Payouts eligibility of that app's linked Business account. Next inspect that exa
 app's linked sender in Developer Dashboard. If confirmed US Business, investigate
 Payouts enablement with PayPal support using the debug ID. Recipient login is
 already working and need not be repeated while the app stays unchanged.
+
+The user subsequently confirmed that the app-linked sender is US-region. The
+country hypothesis is therefore not established as the cause of this refusal.
+The next check is Payouts availability/enablement for that sandbox app and sender;
+if enabled, PayPal technical support must trace debug ID `f718292bd6c36`. No
+further account recreation or recipient login is indicated by current evidence.
