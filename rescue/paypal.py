@@ -16,6 +16,22 @@ class NoRedirect(request.HTTPRedirectHandler):
         raise ProbeError('Unexpected PayPal redirect; request not forwarded')
 
 
+def http_diagnostic(exc):
+    """Expose only bounded machine error identifiers, never response messages."""
+    parts = [f'PayPal HTTP {exc.code}']
+    try:
+        data = json.loads(exc.read(65536))
+    except (ValueError, OSError):
+        data = {}
+    if isinstance(data, dict):
+        for key, pattern in (('name', r'[A-Z][A-Z0-9_]{0,79}'),
+                             ('debug_id', r'[a-fA-F0-9]{1,64}')):
+            value = data.get(key)
+            if isinstance(value, str) and re.fullmatch(pattern, value):
+                parts.append(f'{key}={value}')
+    return '; '.join(parts) + '; other response fields suppressed'
+
+
 def identifier(value):
     if not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', value):
         raise ProbeError('Invalid identifier')
@@ -43,7 +59,7 @@ class PayPal:
             with request.build_opener(NoRedirect()).open(req, timeout=25) as response:
                 return json.load(response)
         except error.HTTPError as exc:
-            raise ProbeError(f'PayPal HTTP {exc.code}; response suppressed') from None
+            raise ProbeError(http_diagnostic(exc)) from None
         except (error.URLError, TimeoutError, OSError):
             raise ProbeError('PayPal transport failure; outcome may be unknown') from None
 

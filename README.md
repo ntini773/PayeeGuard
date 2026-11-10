@@ -84,8 +84,8 @@ unclaimed experiment, not a replacement or recovery action.
 
 Responses, IDs, timestamps and request payloads are recorded in ignored, private
 `.runtime/experiments.sqlite3`. Treat these as sensitive recipient data. Tokens
-and credentials are excluded. HTTP failures record a status code only; their
-response bodies are suppressed. The evidence table is append-only by application
+and credentials are excluded. HTTP failures record the status code and validated error name/debug ID when
+available; other response fields are suppressed. The evidence table is append-only by application
 convention, not a tamper-proof audit store. Keep the database between runs.
 
 ## Decision after the gates

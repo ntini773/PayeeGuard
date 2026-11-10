@@ -6,7 +6,7 @@ Date: 2026-11-10
 
 **Experiment tooling is built and locally tested. The user's terminal has now
 passed NVIDIA inference and PayPal OAuth; payout feasibility remains unproven.**
-No successful payout creation, recipient login, or cancellation is claimed.
+Recipient login has passed in the user's terminal. No successful payout creation or cancellation is claimed.
 The user confirmed the existing sandbox app is configured and may
 be used. Its server-side permissions and country have not been independently
 verified here.
@@ -23,7 +23,7 @@ check, initial tests and runbook. The recovery application has not been built.
 |---|---|---|
 | Pixi setup following setup.md | `pixi install --locked`; `pixi lock --check`; `pixi run python --version` = Python 3.11.18 | PASS |
 | NVIDIA setup using existing private key | User supplied terminal output: `AI inference and JSON validation: PASS` | PASS in user's terminal |
-| Initial tests | `pixi run test`: 14 tests passed | PASS, mocked network only |
+| Initial tests | `pixi run test`: 17 tests passed | PASS, mocked network only |
 | Durable request identity | Restart-after-timeout test compares identical payloads; completed request not resent | PASS locally |
 | Cancel safety | Tests cover non-UNCLAIMED denial, cancel timeout, pending result, failed recheck, and returned confirmation | PASS locally |
 | PayPal identity scope handling | Mock test requires payer ID and verification attribute; tokens excluded from stored identity | PASS locally; browser flow unverified |
@@ -41,8 +41,8 @@ network solve. No environment symlink or fake installation was substituted.
 |---|---|---|
 | 1. US Business sender and Payouts access | User confirms app setup and supplied `oauth: PASS`; Payouts access still requires a successful Payouts request | OAuth PASS; Payouts UNVERIFIED |
 | 2. Real unregistered-recipient UNCLAIMED payout | No successful API connection; no chosen unregistered test destination | NOT RUN |
-| 3. Login returns payer ID and account verification | Interactive state-checked loopback login implemented; requires recipient browser login | NOT RUN |
-| 4. Authenticated PAYPAL_ID payout reaches SUCCESS | Creation uses identity returned by gate 3; no authenticated identity yet | NOT RUN |
+| 3. Login returns payer ID and account verification | User supplied login output with payer ID and verified_account string "true" | PASS in user terminal |
+| 4. Authenticated PAYPAL_ID payout reaches SUCCESS | User ran create-payer payer-01; PayPal returned HTTP 403 | BLOCKED; exact error pending |
 | 5. Separate unclaimed payout cancellation reaches RETURNED | Cancellation runner implemented; no live unclaimed item available | NOT RUN |
 | 6. Dashboard fallback if API cancellation fails | Requires sandbox sender browser session; no actual cancellation failure tested yet | NOT RUN / conditional |
 
@@ -99,3 +99,13 @@ advanced. Review of the login probe added explicit rejection of HTTP redirects
 parameters, empty codes, error callbacks and mismatched Unicode state values.
 The expanded suite passes all 14 tests. These checks do not replace the pending
 browser login and actual sandbox transaction tests.
+
+## Payout authorization diagnostic
+
+The user completed recipient login, then the authenticated payer-ID creation
+request received HTTP 403. This proves the service was reachable, but does not
+establish the precise refusal reason or disprove payer-ID compatibility. The
+client now exposes only validated error-name and debug-ID fields, while keeping
+messages, recipient details and tokens suppressed. All 17 tests pass, including
+redaction and malformed-body checks. Retry `pixi run probe create-payer payer-01`
+to collect the error name using the same persisted sender batch ID.
