@@ -145,3 +145,12 @@ country hypothesis is therefore not established as the cause of this refusal.
 The next check is Payouts availability/enablement for that sandbox app and sender;
 if enabled, PayPal technical support must trace debug ID `f718292bd6c36`. No
 further account recreation or recipient login is indicated by current evidence.
+
+The user reports the same refusal after the feature-check guidance. Exact
+Payouts feature status has not been supplied, so app configuration versus
+PayPal-side provisioning remains unresolved. Repeated creation attempts have
+not advanced the gate. Next action: ask PayPal technical support to trace the
+sandbox request using the debug ID, app-linked sandbox sender and request time.
+Do not submit secrets or access tokens. Preserve the existing experiment and
+resume its verification after account eligibility is resolved. No payout,
+cancellation, or full recovery success is claimed.
