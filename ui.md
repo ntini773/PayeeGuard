@@ -6,6 +6,12 @@ TASK.md's cancellation-failure fallback. Do not redesign the payment architectur
 Commit each functional UI improvement separately; update report.md with actual
 verification. No sponsor dependency is installed by this handoff.
 
+Read [tools.md](tools.md) for the sponsor integration and verification guide.
+It describes candidate integrations, not installed capabilities. The selection
+below applies that guide to this UI revamp; it does not authorize installing every
+listed service. No sponsor logos, promotional badges, or sponsor showcase sections
+are requested. Every dependency must solve a named user or engineering task.
+
 ## Product truth and demonstrated behavior
 
 A marketplace recipient reports an inaccessible/wrong payout address, authenticates
@@ -83,6 +89,7 @@ creator/operator browser profiles are needed because the cookie is per browser.
 
 ## PayPal buttons — requested for the revamp
 
+These are functional authentication controls, not a request for decorative logos.
 Use the actual **Log in with PayPal / Continue with PayPal** identity button for
 sandbox destination authentication. This flow verifies an account; it is not a
 checkout. Do not insert a Buy Now/Pay button, Orders capture, or checkout SDK
@@ -171,10 +178,50 @@ Implementation constraints for the handoff agent:
   dashboard prompts cannot trigger a financial action. Show before/after operator
   task improvement, not logo placement.
 
-Other optional sponsor services remain outside this UI handoff unless they solve
-a named task better than this narrow integration. Do not reintroduce Elastic,
-APIMatic or Zapier against TASK.md's scope, or force scheduling/commerce widgets
-into payout review. Deployment is a separate deliverable.
+## Sponsor selection after reviewing tools.md
+
+Use tools.md's recommendations selectively. TASK.md §6 originally cut broad
+sponsor integration; the user's subsequent request asks us to identify useful
+integrations for this handoff, not to migrate the application or add all sponsors.
+AG Studio is the primary UI candidate. Preserve the existing console as a fallback
+and initially expose analytics as a separate operator view or feature flag.
+
+| Candidate | Concrete contribution | Scope for the handoff |
+|---|---|---|
+| AG Studio | Find pending reviews, filter unresolved cases, inspect selected-case evidence and audit history | Primary UI candidate; implement only with the functional acceptance checks above |
+| APIMatic | Review PayPal endpoint/schema assumptions using its development context tooling | Development aid if PayPal integration changes; no dashboard widget or runtime dependency required |
+| Postman | Repeatable application API checks for roles, proposals, stale approvals and safe failure | Optional verification deliverable using synthetic fixtures; retain the existing regression suite |
+| Render | Stable public demo with persistent case/audit data | Separate hosting work if needed; not part of visual polish or an automatic deployment request |
+| Elastic | Find relevant sanitized prior cases or policy passages with source IDs | Defer until operators have a real retrieval need and enough records; search results never authorize an action |
+| Zapier | Notify operators of committed review requests or cancellation failures | Defer until notifications solve an actual missed-work problem; delivery failure must not block the case workflow |
+| Bryntum | Display backend-defined review deadlines | Defer: do not invent SLA dates or a scheduling workflow to justify a calendar |
+| KERNEL | Browser QA against a controlled synthetic demo | Only if browser access is an actual verification blocker; no PayPal dashboard automation |
+| Astropods | Agent deployment/observability | Defer unless existing deployment cannot meet a named requirement; preserve the five-tool boundary |
+| Channel3 | Product discovery | Exclude: no useful role in the current payout investigation flow |
+
+The table is a project selection from tools.md, not fresh verification of vendor
+versions, licensing, or availability. Before implementing a selected integration,
+check its current official documentation and record the exact product/version.
+Do not install services, send notifications, or deploy merely to complete this brief.
+
+Resolve guide examples against the actual repository:
+
+- tools.md's React examples do not require a React rewrite; the app is vanilla JS.
+- Its example `APPROVAL_PENDING` notification state maps to the actual
+  `AWAITING_APPROVAL` state. Do not add a second enum or infer events from UI text.
+- `/api/operator/analytics` is a suggested extension, not an existing endpoint.
+  If aggregate data needs it, enforce operator authorization server-side and return
+  minimal sanitized fields; test exact counts and that reads have no side effects.
+- Public hosting requires reviewing the current loopback server, cookie/origin
+  settings, OAuth callback configuration and durable storage. A hosting logo or
+  successful process start is not evidence that deployment is ready.
+
+For anything actually shipped, record its purpose, changed files/routes, version,
+license/trial constraints, repeatable verification, failure behavior and known
+limitations using tools.md §14's evidence format. A useful dashboard demonstration
+must show a task completed with correct data; installation or a screenshot of a
+logo does not count. Stop an integration if dependency churn threatens the working
+core, and document that it was deferred rather than claiming it is complete.
 
 ## State-to-action contract (do not infer state from chat text)
 
