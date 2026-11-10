@@ -130,6 +130,17 @@ class Workflow:
             self.store.save(case, actor, 'recipient_message', {'message': text.strip()})
             return case
 
+    def clear_conversation(self, case_id, actor):
+        """Clear working chat history, without resetting financial state or audit."""
+        with self.lock:
+            case = self.store.case(case_id, actor)
+            self.recipient(actor, case)
+            count = len(case['messages'])
+            case['messages'] = []
+            self.store.save(case, actor, 'conversation_cleared', {'archived_message_count': count,
+                'note': 'Messages remain in case activity; verification, proposal, approval and payout state are unchanged.'})
+            return case
+
     def propose(self, case_id, actor, action, explanation):
         with self.lock:
             case = self.store.case(case_id, actor)

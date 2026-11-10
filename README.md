@@ -51,6 +51,20 @@ Both UI and audit distinguish this fixture from real PayPal authentication.
    matching and fresh-status guards, and does not approve or execute anything.
 5. The operator reviews the proposal in a separate marketplace session.
 
+### Clear conversation and understand the accounts
+
+As creator, click **Clear conversation** above the messages. This clears the
+visible chat and the history used for future AI turns. Earlier messages remain
+in Case activity; identity evidence, proposals, approvals and payout state are
+unchanged. This does not create a new payout or reset a pending cancellation.
+An in-flight AI turn must finish before the chat can be cleared.
+
+The `creator` login is a marketplace account. PayPal's RECEIVER_UNREGISTERED
+refers to the **original payout email**, deliberately unregistered in the sandbox
+for this experiment. It does not mean the creator lacks a marketplace account
+or a separate PayPal account. Authenticate PayPal verifies the latter account
+as the proposed destination. The summary shows the original address separately.
+
 ### Operator journey
 
 1. Sign in as `operator`. Inspect status, amount, original item, recipient
@@ -135,7 +149,7 @@ credentials into this prototype. Node 22/Python 3.11/ChatNVIDIA 1.4.3 remain loc
 ## Verification commands
 
 ```sh
-pixi run test            # 55 Python tests + DOM-double UI render checks; no network
+pixi run test            # 59 Python tests + DOM-double UI render checks; no network
 pixi run diagnose-ai     # Actual NVIDIA inference/JSON connectivity
 pixi run evaluate-agent  # Six actual NVIDIA tool-loop cases; PayPal simulated
 pixi run probe access    # Actual sandbox OAuth only

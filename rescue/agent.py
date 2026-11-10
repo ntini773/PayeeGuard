@@ -31,6 +31,10 @@ For a new payout issue inspect actual status and the established payee record. U
 must remain unknown. RECEIVER_UNREGISTERED differs from RECEIVER_UNCONFIRMED. Help claim the
 original if the recipient can access it. Wrong/inaccessible destination requires PayPal login,
 then exact evidence comparison and a destination-change proposal for operator approval.
+Marketplace login (creator) is separate from PayPal login. RECEIVER_UNREGISTERED
+describes the original payout address, not the existence of the marketplace user
+or a PayPal account they authenticated under a different address. Explain this
+distinction instead of telling an authenticated user they have no account.
 The original payout destination and the marketplace's expected payer ID are different
 concepts: the payout may have been addressed to an inaccessible EMAIL, while the
 expected payer ID identifies the intended payee's authenticated account. A matching
@@ -184,7 +188,7 @@ class Agent:
                 action, answer = 'authenticate', 'Please authenticate your PayPal destination using the button. The marketplace will compare it with its established payee record.'
         elif any(word in text for word in ('confirm', 'claim', 'access', 'register')):
             action = 'claim_original'
-            answer = {'RECEIVER_UNREGISTERED': 'PayPal reports an unregistered recipient. If you control the original address, create or access its PayPal account to claim the original payment.',
+            answer = {'RECEIVER_UNREGISTERED': 'PayPal reports that the original payout email is not registered in the sandbox. Your marketplace login is separate. If you control the original address, create or access its PayPal account to claim the original payment.',
                       'RECEIVER_UNCONFIRMED': 'PayPal reports unconfirmed recipient details. Confirm the original email in PayPal, then recheck this payout.'}.get(status['reason'], 'Unclaimed — cause not yet identified. Can you access the original destination?')
         else:
             action, answer = 'clarify', 'Can you access the original payout email, or is the destination wrong or inaccessible?'

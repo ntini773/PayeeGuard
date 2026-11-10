@@ -50,13 +50,16 @@ class Application:
 
     def action(self, case_id, action, actor, body):
         self.store.case(case_id, actor)
-        if action == 'message':
+        if action in ('message', 'clear-conversation'):
             with self.chat_guard:
                 lock = self.chat_locks.setdefault(case_id, threading.Lock())
             if not lock.acquire(blocking=False):
                 raise Denied('An investigation is already running for this case')
             try:
-                self.agent.reply(case_id, actor, body.get('message'))
+                if action == 'message':
+                    self.agent.reply(case_id, actor, body.get('message'))
+                else:
+                    self.flow.clear_conversation(case_id, actor)
             finally:
                 lock.release()
         elif action == 'refresh':

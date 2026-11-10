@@ -211,3 +211,24 @@ class WorkflowTest(unittest.TestCase):
         with self.assertRaises(Denied):
             self.flow.request_change(self.case_id, self.creator, 'Old address inaccessible', True)
         self.assertIsNone(self.store.case(self.case_id, self.creator)['proposal'])
+
+    def test_clear_conversation_preserves_verification_approval_and_audit(self):
+        self.flow.message(self.case_id, self.creator, 'My old email is inaccessible')
+        before = self.approved()
+        after = self.flow.clear_conversation(self.case_id, self.creator)
+        self.assertEqual(after['messages'], [])
+        for key in before:
+            if key not in ('messages', 'version'):
+                self.assertEqual(after[key], before[key], key)
+        audit = self.store.audit(self.case_id, self.creator)
+        self.assertTrue(any(a['event'] == 'recipient_message' for a in audit))
+        self.assertEqual(audit[-1]['event'], 'conversation_cleared')
+        self.assertEqual(audit[-1]['data']['archived_message_count'], 1)
+
+    def test_clear_conversation_cannot_reset_pending_cancellation(self):
+        self.approved()
+        before = self.flow.cancel(self.case_id, self.operator)
+        after = self.flow.clear_conversation(self.case_id, self.creator)
+        self.assertEqual(after['state'], 'CANCELLATION_PENDING')
+        self.assertEqual(after['cancellation_error'], before['cancellation_error'])
+        self.assertIsNone(after['replacement'])

@@ -73,7 +73,12 @@ function render(data) {
   text('amount', `${c.currency} ${c.amount}`); text('paypal-status', c.paypal_status);
   text('original-id', `Original item · ${c.original_item_id}`);
   text('last-checked', c.status_checked_at ? new Date(c.status_checked_at * 1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'Not checked');
-  text('reason', c.reason ? `PayPal reason: ${c.reason}` : c.paypal_status === 'UNCLAIMED' ? 'Unclaimed — cause not yet identified.' : 'Use Refresh status to retrieve current provider evidence.');
+  const reasonText = {
+    RECEIVER_UNREGISTERED: 'The original payout email has no registered PayPal sandbox account. Your marketplace login and your separately authenticated PayPal account can still be valid.',
+    RECEIVER_UNCONFIRMED: 'The original payout destination is unconfirmed in PayPal. This is separate from your marketplace login.'
+  };
+  text('reason', c.reason ? `${reasonText[c.reason] || 'PayPal reported a payout issue.'} (${c.reason})` : c.paypal_status === 'UNCLAIMED' ? 'Unclaimed — cause not yet identified.' : 'Use Refresh status to retrieve current provider evidence.');
+  text('original-destination', c.original_destination?.receiver ? `Originally sent to: ${c.original_destination.receiver} (${c.original_destination.recipient_type || 'destination'})` : 'Original destination will appear after a successful status refresh.');
   text('payee-name', data.payee.name); text('expected-payer', `Expected payer ID · ${data.payee.expected_payer_id}`);
   text('record-source', data.payee.record_source);
   text('authenticated-payer', c.identity ? c.identity.payer_id : 'Not authenticated');
@@ -92,6 +97,7 @@ function render(data) {
   $('messages').replaceChildren(...nodes);
   if ($('messages').textContent !== oldMessages) $('messages').scrollTop = $('messages').scrollHeight;
   show('message-form', !operator); show('operator-chat-note', operator);
+  show('clear-conversation', !operator && c.messages.length > 0);
   const canAuth = !operator && !['CANCELLATION_PENDING','RETURNED_NO_REPLACEMENT','CLOSED_SIMULATED','ORIGINAL_PAID'].includes(c.state);
   show('auth-actions', canAuth); show('mismatch', canAuth && demo);
   text('authenticate', demo ? 'Simulate matching PayPal login' : 'Authenticate PayPal ↗');
@@ -123,6 +129,7 @@ $('logout').onclick = () => task(async () => { await api('/api/logout', {}); sel
 $('refresh-list').onclick = () => task(() => loadCases());
 $('refresh-status').onclick = () => task(() => action('refresh'));
 $('message-form').onsubmit = e => { e.preventDefault(); task(async () => { notify('Investigating your message…'); await action('message', {message: $('message').value}); $('message').value = ''; show('status', false); }); };
+$('clear-conversation').onclick = () => task(async () => { await action('clear-conversation'); $('message').value = ''; notify('Conversation cleared. Verification, proposals and case activity are preserved.'); });
 $('review-request-form').onsubmit = e => { e.preventDefault(); task(async () => { await action('request-review', {reason: $('review-reason').value, confirmed: $('review-confirmed').checked}); e.target.reset(); notify('Proposal recorded. Your operator can now review it.'); }); };
 $('authenticate').onclick = () => task(async () => { await action(session.mode === 'demo' ? 'simulate-auth' : 'authenticate', {account: 'match'}); if (session.mode === 'demo') notify('Simulated identity recorded. Ask the assistant to verify your destination.'); });
 $('mismatch').onclick = () => task(() => action('simulate-auth', {account: 'mismatch'}));

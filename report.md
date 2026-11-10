@@ -42,7 +42,7 @@ webhook fallback. Sponsor services and hosting were not added.
 
 ## Verification
 
-- **PASS:** `pixi run test` — 55 Python tests and UI render checks using a DOM double.
+- **PASS:** `pixi run test` — 59 Python tests and UI render checks using a DOM double.
 - **PASS:** JavaScript syntax and Python compilation checks.
 - **PASS:** `pixi lock --check` — existing lock remains valid; no new dependencies.
 - **PASS:** HTTP handlers tested end to end through an in-memory request/response
@@ -117,7 +117,7 @@ states remain exempt from new proposals, and all evidence/approval guards remain
 in force. The operator UI now explains when no proposal exists.
 
 Regression tests cover correction to AWAITING_APPROVAL, persistent omission, and
-attempts to bypass mismatched-evidence checks. All 55 Python tests and UI render
+attempts to bypass mismatched-evidence checks. All 59 Python tests and UI render
 checks pass. The user's existing case and approvals were not edited or fabricated.
 Restart the app and ask the assistant to prepare the proposal to exercise the
 fix against the live model. Live case evidence also demonstrates the web login
@@ -141,8 +141,23 @@ Operator approval and cancellation remain separate guarded actions. This removes
 dependency on model wording for a clear human request without adding an LLM tool
 or granting the model payment authority. Escalated cases cannot use this action.
 
-All 55 Python tests plus UI component checks pass. Added tests cover explicit
+All 59 Python tests plus UI component checks pass. Added tests cover explicit
 review after AI clarification, missing consent, mismatched evidence, wrong actor,
 claimed originals, and distinction of the original email from the expected payer
 ID. Existing live case state was left untouched; restart and use the new recipient
 form to submit a review request. Live-model improvement is not yet verified here.
+
+## Conversation clearing and account distinction
+
+Added recipient-only Clear conversation with session/CSRF/ownership checks and
+the same per-case lock used for agent turns. It removes working chat history,
+keeps earlier message audit events, and preserves verification, proposals,
+approval and payment state. It cannot reset an unresolved cancellation. No user
+conversation was cleared during implementation; the recipient controls the action.
+
+The UI now explains RECEIVER_UNREGISTERED as the original payout email's sandbox
+registration status, distinguishes it from the creator marketplace login and
+separate authenticated PayPal account, and displays the original payout address.
+The agent instructions and scripted guidance use the same distinction. All 59
+Python tests and UI component checks pass, including audit/state preservation,
+role restrictions and in-flight chat protection.

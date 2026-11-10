@@ -155,3 +155,23 @@ class AppTest(unittest.TestCase):
             {'version':result['case']['version']}, **operator)
         self.assertEqual(status, 200)
         self.assertEqual(result['case']['state'], 'APPROVED')
+
+    def test_recipient_can_clear_chat_but_operator_cannot(self):
+        auth = self.auth('creator')
+        self.request('POST', '/api/cases/case-001/message', {'message': 'My old email is inaccessible'}, **auth)
+        operator = self.auth('operator')
+        self.assertEqual(self.request('POST', '/api/cases/case-001/clear-conversation', {}, **operator)[0], 403)
+        status, _, result = self.request('POST', '/api/cases/case-001/clear-conversation', {}, **auth)
+        self.assertEqual(status, 200)
+        self.assertEqual(result['case']['messages'], [])
+        self.assertTrue(any(a['event'] == 'recipient_message' for a in result['audit']))
+
+    def test_clear_chat_rejected_while_agent_turn_in_flight(self):
+        import threading
+        auth = self.auth('creator')
+        lock = threading.Lock()
+        self.app.chat_locks['case-001'] = lock
+        with lock:
+            status, _, result = self.request('POST', '/api/cases/case-001/clear-conversation', {}, **auth)
+        self.assertEqual(status, 403)
+        self.assertIn('investigation is already running', result['error'])
