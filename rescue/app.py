@@ -1,4 +1,4 @@
-"""Loopback-only web application for the Section 5 fallback."""
+"""Section 5 fallback: local by default, explicit HTTPS origin for hosted demos."""
 import argparse
 import fcntl
 import json
@@ -23,7 +23,11 @@ REDIRECT = 'http://127.0.0.1:8765/callback'
 
 
 class Application:
-    def __init__(self, store, paypal, fixture=False, model=None):
+    def __init__(self, store, paypal, fixture=False, model=None, public_origin=None):
+        if public_origin and not re.fullmatch(r'https://[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?', public_origin):
+            raise ValueError('Public origin must be an HTTPS hostname without path or port')
+        self.public_origin = public_origin
+        self.redirect = public_origin + '/callback' if public_origin else REDIRECT
         self.store, self.paypal = store, paypal
         self.flow = Workflow(store, paypal)
         self.agent = Agent(self.flow, model=model, fixture=fixture)
@@ -73,7 +77,7 @@ class Application:
             self.store.log(case_id, actor, 'paypal_login_started', {})
             return {'url': 'https://www.sandbox.paypal.com/connect?' + urlencode({
                 'flowEntry': 'static', 'client_id': self.paypal.client_id,
-                'response_type': 'code', 'redirect_uri': REDIRECT,
+                'response_type': 'code', 'redirect_uri': self.redirect,
                 'scope': 'openid https://uri.paypal.com/services/paypalattributes', 'state': state})}
         elif action == 'simulate-auth':
             if self.mode != 'demo' or body.get('account') not in ('match', 'mismatch'):
@@ -103,7 +107,7 @@ class Application:
         if len(parsed.get('code', [])) != 1 or not parsed['code'][0] or self.mode != 'sandbox':
             raise Denied('Invalid PayPal login callback')
         # Do not accept browser-posted payer IDs; only the provider exchange supplies evidence.
-        evidence = self.paypal.identity(parsed['code'][0], REDIRECT)
+        evidence = self.paypal.identity(parsed['code'][0], self.redirect)
         self.flow.identity(case_id, actor, evidence)
         return case_id
 
@@ -111,6 +115,11 @@ class Application:
 def handler_for(app):
     class Handler(BaseHTTPRequestHandler):
         server_version = 'PayoutRescue'
+
+        def setup(self):
+            super().setup()
+            if hasattr(self.connection, 'settimeout'):
+                self.connection.settimeout(30)
 
         def log_message(self, *args):
             pass  # Callback URLs contain single-use credentials.
@@ -125,7 +134,9 @@ def handler_for(app):
             self.send_header('Referrer-Policy', 'no-referrer')
             self.send_header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
             if cookie:
-                self.send_header('Set-Cookie', cookie)
+                self.send_header('Set-Cookie', cookie + ('; Secure' if app.public_origin else ''))
+            if app.public_origin:
+                self.send_header('Strict-Transport-Security', 'max-age=31536000')
             if location:
                 self.send_header('Location', location)
             self.end_headers()
@@ -140,15 +151,19 @@ def handler_for(app):
                 return ''
 
         def boundary(self):
-            expected = f'127.0.0.1:{self.server.server_port}'
+            expected = urlparse(app.public_origin).netloc if app.public_origin else f'127.0.0.1:{self.server.server_port}'
             if self.headers.get('Host') != expected:
-                raise Denied('Use the printed 127.0.0.1 URL')
+                raise Denied('Use the configured application URL')
             origin = self.headers.get('Origin')
-            if origin and origin != 'http://' + expected:
+            if origin and origin != (app.public_origin or 'http://' + expected):
                 raise Denied('Cross-origin requests are not allowed')
 
         def do_GET(self):
             try:
+                # Render health probes may use an internal Host. No case data or secrets.
+                if self.path == '/healthz':
+                    return self.send(200 if app.store.metadata('mode') == app.mode else 503,
+                                     {'ok': app.store.metadata('mode') == app.mode})
                 self.boundary()
                 url = urlparse(self.path)
                 if url.path in ('/', '/app.js', '/style.css'):
@@ -222,9 +237,10 @@ def main():
     parser.add_argument('--expected-payer-id')
     parser.add_argument('--amount', default='0.01')
     parser.add_argument('--currency', default='USD')
+    parser.add_argument('--runtime-dir', type=Path, default=Path(os.environ.get('RESCUE_RUNTIME_DIR', ROOT / '.runtime')))
     args = parser.parse_args()
     os.umask(0o077)
-    runtime = ROOT / '.runtime'
+    runtime = args.runtime_dir
     runtime.mkdir(mode=0o700, exist_ok=True)
     db_path = runtime / ('app-' + args.mode + '.sqlite3')
     store = Store(db_path)
@@ -262,13 +278,16 @@ def main():
         except BlockingIOError:
             parser.error('An application server already owns this database')
         paypal = DemoPayPal() if args.mode == 'demo' else PayPal(settings())
-        app = Application(store, paypal, fixture=args.ai == 'fixture')
+        public_origin = os.environ.get('RESCUE_PUBLIC_ORIGIN')
+        app = Application(store, paypal, fixture=args.ai == 'fixture', public_origin=public_origin)
+        port = int(os.environ.get('PORT', '8765')) if public_origin else 8765
+        bind = '0.0.0.0' if public_origin else '127.0.0.1'
         try:
-            server = ThreadingHTTPServer(('127.0.0.1', 8765), handler_for(app))
+            server = ThreadingHTTPServer((bind, port), handler_for(app))
         except OSError:
-            raise SystemExit('Cannot open 127.0.0.1:8765. Stop any other listener (including probe login), or run in a terminal that permits local sockets.') from None
+            raise SystemExit(f'Cannot open {bind}:{port}. Stop any other listener, or run in a terminal that permits sockets.') from None
         with server:
-            print(f'Payout Rescue: http://127.0.0.1:8765 — {args.mode}; AI: {app.ai_mode}', flush=True)
+            print(f'Payout Rescue: {public_origin or REDIRECT.removesuffix("/callback")} — {args.mode}; AI: {app.ai_mode}', flush=True)
             print('Local account credentials: ' + str(runtime / (args.mode + '-accounts.json')), flush=True)
             try:
                 server.serve_forever()

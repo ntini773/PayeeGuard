@@ -1,0 +1,40 @@
+# Prepared blueprint; no service is deployed by adding this file.
+services:
+  - type: web
+    name: claimpal
+    runtime: python
+    plan: starter
+    numInstances: 1
+    buildCommand: pip install -r deploy/requirements.txt
+    startCommand: python deploy/start.py
+    healthCheckPath: /healthz
+    autoDeployTrigger: off
+    disk:
+      name: payout-rescue-state
+      mountPath: /var/data/rescue
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: RESCUE_RUNTIME_DIR
+        value: /var/data/rescue
+      - key: RESCUE_PUBLIC_ORIGIN
+        sync: false
+      - key: RESCUE_MODE
+        value: sandbox
+      - key: RESCUE_AI
+        value: nvidia
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: RESCUE_ITEM_ID
+        sync: false
+      - key: RESCUE_EXPECTED_PAYER_ID
+        sync: false
+      - key: RESCUE_AMOUNT
+        value: '0.01'
+      - key: RESCUE_CURRENCY
+        value: USD

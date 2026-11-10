@@ -59,6 +59,49 @@ class AppTest(unittest.TestCase):
         self.assertEqual(self.request('GET', '/api/cases')[0], 403)
         self.assertEqual(self.request('GET', '/', host='evil.example')[0], 403)
 
+    def test_hosted_origin_secure_session_and_csrf(self):
+        self.app = Application(self.store, self.api, fixture=True,
+                               public_origin='https://rescue.example')
+        status, headers, _ = self.request('POST', '/api/login',
+            {'username':'creator', 'password':self.credentials['creator']},
+            host='rescue.example', origin='https://rescue.example')
+        self.assertEqual(status, 200)
+        self.assertIn('; Secure', headers['Set-Cookie'])
+        self.assertIn('Strict-Transport-Security', headers)
+        cookie = headers['Set-Cookie'].split(';')[0]
+        data = self.request('GET', '/api/session', cookie=cookie, host='rescue.example')[2]
+        for origin in ('http://rescue.example', 'https://evil.example'):
+            self.assertEqual(self.request('POST', '/api/cases/case-001/refresh', {},
+                cookie=cookie, csrf=data['csrf'], host='rescue.example', origin=origin)[0], 403)
+        self.assertEqual(self.request('GET', '/api/cases', cookie=cookie)[0], 403)
+        self.assertEqual(self.request('POST', '/api/cases/case-001/refresh', {},
+            cookie=cookie, host='rescue.example', origin='https://rescue.example')[0], 403)
+        status, headers, _ = self.request('POST', '/api/logout', {}, cookie=cookie,
+            csrf=data['csrf'], host='rescue.example', origin='https://rescue.example')
+        self.assertEqual(status, 200)
+        self.assertIn('; Secure', headers['Set-Cookie'])
+
+    def test_public_origin_validation_and_health(self):
+        for origin in ('http://rescue.example', 'https://rescue.example/path',
+                       'https://user:pass@rescue.example', 'https://rescue.example?x=1'):
+            with self.assertRaises(ValueError):
+                Application(self.store, self.api, fixture=True, public_origin=origin)
+        status, _, data = self.request('GET', '/healthz', host='internal-health-host')
+        self.assertEqual((status, data), (200, {'ok': True}))
+
+    def test_hosted_oauth_uses_configured_callback_for_both_steps(self):
+        paypal = self.sandbox_app()
+        self.app = Application(self.store, paypal, model=Mock(),
+                               public_origin='https://rescue.example')
+        token = self.store.login('creator', self.credentials['creator'])
+        actor = self.store.session(token)
+        from urllib.parse import urlparse, parse_qs
+        result = self.app.action('case-001', 'authenticate', actor, {})
+        params = parse_qs(urlparse(result['url']).query)
+        self.assertEqual(params['redirect_uri'], ['https://rescue.example/callback'])
+        self.app.callback(urlencode({'state':params['state'][0], 'code':'private-code'}), actor)
+        paypal.identity.assert_called_once_with('private-code', 'https://rescue.example/callback')
+
     def test_http_rejects_csrf_and_cross_origin(self):
         auth = self.auth('creator')
         self.assertEqual(self.request('POST', '/api/cases/case-001/refresh', {}, cookie=auth['cookie'])[0], 403)
