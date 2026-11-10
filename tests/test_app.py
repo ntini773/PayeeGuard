@@ -140,3 +140,18 @@ class AppTest(unittest.TestCase):
         self.assertEqual(self.request('POST', '/api/cases/case-001/identity', {'payer_id':'OTHER'}, **auth)[0], 403)
         self.assertIsNone(self.store.case('case-001', self.creator)['identity'])
         paypal.identity.assert_not_called()
+
+    def test_explicit_review_available_after_model_clarification(self):
+        auth = self.auth('creator')
+        self.request('POST', '/api/cases/case-001/simulate-auth', {'account':'match'}, **auth)
+        self.flow.propose('case-001', self.creator, 'clarify', 'Why do you need a change?')
+        status, _, result = self.request('POST', '/api/cases/case-001/request-review',
+            {'reason':'The original email is inaccessible.', 'confirmed':True}, **auth)
+        self.assertEqual(status, 200)
+        self.assertEqual(result['case']['state'], 'AWAITING_APPROVAL')
+        self.assertIsNone(result['case']['approval'])
+        operator = self.auth('operator')
+        status, _, result = self.request('POST', '/api/cases/case-001/approve',
+            {'version':result['case']['version']}, **operator)
+        self.assertEqual(status, 200)
+        self.assertEqual(result['case']['state'], 'APPROVED')

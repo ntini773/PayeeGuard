@@ -108,3 +108,14 @@ class AgentTest(unittest.TestCase):
         self.assertIsNone(case['proposal'])
         self.assertIsNone(case['approval'])
         self.assertTrue(any(a['event']=='agent_tool_denied' for a in self.store.audit(self.case_id,self.creator)))
+
+    def test_tool_context_distinguishes_original_address_from_expected_payee(self):
+        original = self.api.item('SIM-case-001')
+        original['payout_item'].update({'recipient_type':'EMAIL', 'receiver':'old@example.com'})
+        self.api.item = Mock(return_value=original)
+        agent = Agent(self.flow, fixture=True)
+        status = agent.tool('get_payout_status', {}, self.case_id, self.creator)
+        payee = agent.tool('get_payee_record', {}, self.case_id, self.creator)
+        self.assertEqual(status['original_destination'], {'recipient_type':'EMAIL','receiver':'old@example.com'})
+        self.assertEqual(payee['expected_payer_id'], 'DEMO-ALICE')
+        self.assertIn('does not remove the need', payee['record_meaning'])

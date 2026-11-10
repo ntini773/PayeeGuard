@@ -51,7 +51,7 @@ class Workflow:
             return {'sufficient': False, 'reason': 'Authenticated payer ID does not match the established payee record; manual review required'}
         if identity.get('mode') != case['mode']:
             return {'sufficient': False, 'reason': 'Evidence mode mismatch'}
-        return {'sufficient': True, 'reason': 'Exact payer-ID match to established marketplace fixture; operator approval still required'}
+        return {'sufficient': True, 'reason': 'Authenticated payer ID matches the established marketplace fixture. This does not establish access to the original payout address; a requested correction still requires a proposal and operator approval.'}
 
     def identity(self, case_id, actor, evidence):
         with self.lock:
@@ -99,6 +99,9 @@ class Workflow:
                 self.store.save(case, actor, 'status_lookup_failed', {'error': str(exc)})
                 raise
             case['paypal_status'] = result.get('transaction_status', 'UNKNOWN')
+            original = result.get('payout_item', {})
+            case['original_destination'] = {'recipient_type': original.get('recipient_type'),
+                                            'receiver': original.get('receiver')}
             case['reason'] = result.get('errors', {}).get('name')
             case['status_checked_at'] = time.time()
             if case['paypal_status'] == 'SUCCESS':
@@ -155,6 +158,27 @@ class Workflow:
         data = {key: case[key] for key in ('owner', 'original_item_id', 'amount', 'currency', 'identity', 'proposal')}
         data['payee'] = self.store.payee(case['owner'])
         return hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
+
+    def request_change(self, case_id, actor, reason, confirmed):
+        """Explicit recipient request, subject to the same guards as AI proposals."""
+        with self.lock:
+            case = self.store.case(case_id, actor)
+            self.recipient(actor, case)
+            if confirmed is not True:
+                raise Denied('Confirm that the original destination is wrong or inaccessible')
+            if not isinstance(reason, str) or not 1 <= len(reason.strip()) <= 1500:
+                raise Denied('Explain why the original payout destination needs correction')
+            if case['state'] == 'ESCALATED':
+                raise Denied('Escalated requests require marketplace review before a new proposal')
+            if case['state'] in ('CANCELLATION_PENDING', 'RETURNED_NO_REPLACEMENT', 'CLOSED_SIMULATED', 'ORIGINAL_PAID'):
+                raise Denied('Payment handling has already started; use status refresh')
+            if not self.match(case)['sufficient']:
+                raise Denied('Authenticate a matching verified PayPal account before requesting review')
+            self.refresh(case_id, actor)
+            case = self.propose(case_id, actor, 'change_destination',
+                                'Recipient explicitly requests correction to their authenticated destination: ' + reason.strip())
+            self.store.log(case_id, actor, 'recipient_review_requested', {'reason': reason.strip(), 'confirmed_inaccessible_or_wrong': True})
+            return case
 
     def approve(self, case_id, actor, version, approve):
         with self.lock:

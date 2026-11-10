@@ -44,7 +44,12 @@ Both UI and audit distinguish this fixture from real PayPal authentication.
 3. After returning, tell the assistant: “I authenticated; verify my destination.”
    A matching, verified payer ID can produce a destination-change proposal.
    A mismatched account is escalated. Typed names/emails never update the record.
-4. The operator reviews the proposal in a separate marketplace session.
+4. If the assistant keeps clarifying instead of preparing the proposal, use
+   **Request a destination correction** below the authentication area: enter the
+   reason, confirm that the original destination is wrong/inaccessible, and click
+   **Request operator review**. This explicit recipient request applies the same
+   matching and fresh-status guards, and does not approve or execute anything.
+5. The operator reviews the proposal in a separate marketplace session.
 
 ### Operator journey
 
@@ -130,7 +135,7 @@ credentials into this prototype. Node 22/Python 3.11/ChatNVIDIA 1.4.3 remain loc
 ## Verification commands
 
 ```sh
-pixi run test            # 50 Python tests + DOM-double UI render checks; no network
+pixi run test            # 55 Python tests + DOM-double UI render checks; no network
 pixi run diagnose-ai     # Actual NVIDIA inference/JSON connectivity
 pixi run evaluate-agent  # Six actual NVIDIA tool-loop cases; PayPal simulated
 pixi run probe access    # Actual sandbox OAuth only

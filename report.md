@@ -42,7 +42,7 @@ webhook fallback. Sponsor services and hosting were not added.
 
 ## Verification
 
-- **PASS:** `pixi run test` — 50 Python tests and UI render checks using a DOM double.
+- **PASS:** `pixi run test` — 55 Python tests and UI render checks using a DOM double.
 - **PASS:** JavaScript syntax and Python compilation checks.
 - **PASS:** `pixi lock --check` — existing lock remains valid; no new dependencies.
 - **PASS:** HTTP handlers tested end to end through an in-memory request/response
@@ -117,9 +117,32 @@ states remain exempt from new proposals, and all evidence/approval guards remain
 in force. The operator UI now explains when no proposal exists.
 
 Regression tests cover correction to AWAITING_APPROVAL, persistent omission, and
-attempts to bypass mismatched-evidence checks. All 50 Python tests and UI render
+attempts to bypass mismatched-evidence checks. All 55 Python tests and UI render
 checks pass. The user's existing case and approvals were not edited or fabricated.
 Restart the app and ask the assistant to prepare the proposal to exercise the
 fix against the live model. Live case evidence also demonstrates the web login
 and model investigation paths were exercised; full browser/layout QA and the
 six-case actual-model evaluation remain unverified here.
+
+## Matching identity mistaken for no need to correct the destination
+
+A subsequent real model turn called propose_action(clarify), incorrectly reasoning
+that a matching expected payer ID meant the original payout destination needed
+no correction. Matching the established payee and establishing access to the
+original email are different checks. The prompt and tool results now make this
+explicit, include the provider's original recipient type/address, and retain the
+initial issue in longer conversations.
+
+A verified recipient can also explicitly request operator review through a form
+that requires a reason and confirmation of the wrong/inaccessible original
+address. The backend refreshes the original payout, verifies the same ownership,
+identity and status guards, and creates an unapproved destination-change proposal.
+Operator approval and cancellation remain separate guarded actions. This removes
+dependency on model wording for a clear human request without adding an LLM tool
+or granting the model payment authority. Escalated cases cannot use this action.
+
+All 55 Python tests plus UI component checks pass. Added tests cover explicit
+review after AI clarification, missing consent, mismatched evidence, wrong actor,
+claimed originals, and distinction of the original email from the expected payer
+ID. Existing live case state was left untouched; restart and use the new recipient
+form to submit a review request. Live-model improvement is not yet verified here.

@@ -78,6 +78,7 @@ function render(data) {
   text('record-source', data.payee.record_source);
   text('authenticated-payer', c.identity ? c.identity.payer_id : 'Not authenticated');
   text('verification', c.identity ? `${c.identity.mode === 'demo' ? 'SIMULATED · ' : ''}Account verified: ${c.identity.verified_account ? 'Yes' : 'No'} · ${new Date(c.identity.authenticated_at * 1000).toLocaleTimeString()}` : 'The intended recipient must authenticate this destination.');
+  show('review-request-form', !operator && data.match.sufficient && !['ESCALATED', 'AWAITING_APPROVAL', 'APPROVED', 'CANCELLATION_PENDING', 'RETURNED_NO_REPLACEMENT', 'CLOSED_SIMULATED', 'ORIGINAL_PAID'].includes(c.state));
   text('match-result', data.match.reason); $('match-result').classList.toggle('good', data.match.sufficient);
   text('proposal-title', c.proposal ? human(c.proposal.action) : 'Investigation needed');
   text('proposal-copy', c.proposal?.explanation || 'Start with the recipient’s message and actual payout status.');
@@ -122,6 +123,7 @@ $('logout').onclick = () => task(async () => { await api('/api/logout', {}); sel
 $('refresh-list').onclick = () => task(() => loadCases());
 $('refresh-status').onclick = () => task(() => action('refresh'));
 $('message-form').onsubmit = e => { e.preventDefault(); task(async () => { notify('Investigating your message…'); await action('message', {message: $('message').value}); $('message').value = ''; show('status', false); }); };
+$('review-request-form').onsubmit = e => { e.preventDefault(); task(async () => { await action('request-review', {reason: $('review-reason').value, confirmed: $('review-confirmed').checked}); e.target.reset(); notify('Proposal recorded. Your operator can now review it.'); }); };
 $('authenticate').onclick = () => task(async () => { await action(session.mode === 'demo' ? 'simulate-auth' : 'authenticate', {account: 'match'}); if (session.mode === 'demo') notify('Simulated identity recorded. Ask the assistant to verify your destination.'); });
 $('mismatch').onclick = () => task(() => action('simulate-auth', {account: 'mismatch'}));
 $('approve').onclick = () => task(() => action('approve', {version: current.case.version}));

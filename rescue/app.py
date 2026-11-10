@@ -61,6 +61,8 @@ class Application:
                 lock.release()
         elif action == 'refresh':
             self.flow.refresh(case_id, actor)
+        elif action == 'request-review':
+            self.flow.request_change(case_id, actor, body.get('reason'), body.get('confirmed'))
         elif action == 'authenticate':
             if self.mode != 'sandbox':
                 raise Denied('Use the explicitly simulated login in demo mode')

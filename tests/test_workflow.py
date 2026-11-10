@@ -182,3 +182,32 @@ class WorkflowTest(unittest.TestCase):
             with self.assertRaises(Denied):
                 self.flow.cancel(self.case_id, self.operator)
         self.api.cancel.assert_not_called()
+
+    def test_explicit_recipient_review_creates_proposal_without_approval_or_payment(self):
+        self.flow.identity(self.case_id, self.creator, {'payer_id': 'DEMO-ALICE', 'verified_account': True})
+        self.api.cancel = Mock()
+        case = self.flow.request_change(self.case_id, self.creator, 'My old email is inaccessible.', True)
+        self.assertEqual(case['state'], 'AWAITING_APPROVAL')
+        self.assertEqual(case['proposal']['action'], 'change_destination')
+        self.assertIsNone(case['approval'])
+        self.assertIsNone(case['replacement'])
+        self.api.cancel.assert_not_called()
+
+    def test_explicit_review_preserves_ownership_evidence_and_consent_checks(self):
+        with self.assertRaises(Denied):
+            self.flow.request_change(self.case_id, self.creator, 'Old email inaccessible', True)
+        self.flow.identity(self.case_id, self.creator, {'payer_id': 'DEMO-ALICE', 'verified_account': True})
+        for actor, reason, confirmed in [(self.operator, 'Old email inaccessible', True),
+                                         (self.creator, '', True), (self.creator, 'Old email inaccessible', 'true'),
+                                         (self.creator, 'Old email inaccessible', False)]:
+            with self.assertRaises(Denied):
+                self.flow.request_change(self.case_id, actor, reason, confirmed)
+        self.assertIsNone(self.store.case(self.case_id, self.creator)['proposal'])
+
+    def test_explicit_review_requires_fresh_unclaimed_state(self):
+        self.flow.identity(self.case_id, self.creator, {'payer_id': 'DEMO-ALICE', 'verified_account': True})
+        original = self.api.item('SIM-case-001')
+        self.api.item = Mock(return_value=original | {'transaction_status': 'SUCCESS'})
+        with self.assertRaises(Denied):
+            self.flow.request_change(self.case_id, self.creator, 'Old address inaccessible', True)
+        self.assertIsNone(self.store.case(self.case_id, self.creator)['proposal'])
