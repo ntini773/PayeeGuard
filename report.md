@@ -6,7 +6,8 @@ Date: 2026-11-10
 
 **Experiment tooling is built and locally tested. The user's terminal has now
 passed NVIDIA inference and PayPal OAuth; payout feasibility remains unproven.**
-Recipient login has passed in the user's terminal. No successful payout creation or cancellation is claimed.
+Recipient login and payout batch creation have passed in the user's terminal.
+The accepted payout is PENDING; item SUCCESS and cancellation remain unproven.
 The user confirmed the existing sandbox app is configured and may
 be used. Its server-side permissions and country have not been independently
 verified here.
@@ -39,10 +40,10 @@ network solve. No environment symlink or fake installation was substituted.
 
 | Gate | Evidence / blocker | Status |
 |---|---|---|
-| 1. US Business sender and Payouts access | User confirms app setup and supplied `oauth: PASS`; Payouts access still requires a successful Payouts request | OAuth PASS; Payouts UNVERIFIED |
-| 2. Real unregistered-recipient UNCLAIMED payout | No successful API connection; no chosen unregistered test destination | NOT RUN |
+| 1. US Business sender and Payouts access | User confirms US sender; OAuth passed and PayPal accepted batch HVCBQC6NBW3PC | API access PASS; country user-confirmed |
+| 2. Real unregistered-recipient UNCLAIMED payout | No unregistered-recipient experiment reported yet | NOT RUN |
 | 3. Login returns payer ID and account verification | User supplied login output with payer ID and verified_account string "true" | PASS in user terminal |
-| 4. Authenticated PAYPAL_ID payout reaches SUCCESS | User ran create-payer payer-01; PayPal returned HTTP 403 | BLOCKED: PAYOUT_NOT_AVAILABLE |
+| 4. Authenticated PAYPAL_ID payout reaches SUCCESS | PayPal accepted batch HVCBQC6NBW3PC with batch_status PENDING | Creation PASS; item SUCCESS pending |
 | 5. Separate unclaimed payout cancellation reaches RETURNED | Cancellation runner implemented; no live unclaimed item available | NOT RUN |
 | 6. Dashboard fallback if API cancellation fails | Requires sandbox sender browser session; no actual cancellation failure tested yet | NOT RUN / conditional |
 
@@ -154,3 +155,13 @@ sandbox request using the debug ID, app-linked sandbox sender and request time.
 Do not submit secrets or access tokens. Preserve the existing experiment and
 resume its verification after account eligibility is resolved. No payout,
 cancellation, or full recovery success is claimed.
+
+## Payer-ID payout accepted after app change
+
+The user's latest login used a different app (client-ID suffix `meTHlUjs`) and
+returned the same recipient payer ID. Retrying `create-payer payer-01` then
+returned batch `HVCBQC6NBW3PC`, status `PENDING`, using the existing sender batch
+ID. This supersedes the earlier access blocker for the currently selected app.
+It proves batch acceptance, not completed payment. Retrieve the batch, then its
+item, and require item `SUCCESS` to pass gate 4. The exact configuration difference
+behind the previous country refusal has not been independently established.
