@@ -161,3 +161,21 @@ separate authenticated PayPal account, and displays the original payout address.
 The agent instructions and scripted guidance use the same distinction. All 59
 Python tests and UI component checks pass, including audit/state preservation,
 role restrictions and in-flight chat protection.
+
+## Real web fallback exercised successfully
+
+The user completed the browser journey through a recorded change_destination
+proposal and operator approval. Read-only inspection of the current sandbox case
+confirms CANCELLATION_PENDING, PayPal status UNCLAIMED, an approval bound to the
+proposal/evidence, and replacement=null. The cancellation error is HTTP 500
+INTERNAL_SERVICE_ERROR, debug ID `f672532e9721b`. Subsequent status polling still
+reports UNCLAIMED. The proposal explanation correctly distinguishes the inaccessible
+original email from the matching verified PayPal account.
+
+This verifies the intended real sandbox failure-handling path in the new web
+application. It does not establish successful cancellation or money recovery.
+The earlier note that the web journey was wholly unverified is superseded by this
+user run and persisted evidence. Automated real-browser/layout QA and the full
+six-case NVIDIA evaluation remain outstanding. Next demonstrate the isolated
+simulation branch and the claim-assistance/third-party escalation scenarios;
+leave the unresolved sandbox case intact.
