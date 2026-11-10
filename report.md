@@ -23,7 +23,7 @@ check, initial tests and runbook. The recovery application has not been built.
 |---|---|---|
 | Pixi setup following setup.md | `pixi install --locked`; `pixi lock --check`; `pixi run python --version` = Python 3.11.18 | PASS |
 | NVIDIA setup using existing private key | ChatNVIDIA 1.4.3, explicit model registration, 4096 tokens, validated final JSON; attempted actual inference | Configured; connection failed |
-| Initial tests | `pixi run test`: 11 tests passed | PASS, mocked network only |
+| Initial tests | `pixi run test`: 14 tests passed | PASS, mocked network only |
 | Durable request identity | Restart-after-timeout test compares identical payloads; completed request not resent | PASS locally |
 | Cancel safety | Tests cover non-UNCLAIMED denial, cancel timeout, pending result, failed recheck, and returned confirmation | PASS locally |
 | PayPal identity scope handling | Mock test requires payer ID and verification attribute; tokens excluded from stored identity | PASS locally; browser flow unverified |
@@ -89,3 +89,13 @@ Official sources inspected on 2026-11-10:
 
 Documentation supports the proposed integration, but is not evidence that this
 app's payer-ID payout or cancellation succeeds in sandbox.
+
+## Follow-up verification
+
+A subsequent `pixi run probe access` again failed with a transport error, and
+`pixi run diagnose-ai` again failed with a connection error. No live gate has
+advanced. Review of the login probe added explicit rejection of HTTP redirects
+(to keep Authorization headers on the configured service), duplicate callback
+parameters, empty codes, error callbacks and mismatched Unicode state values.
+The expanded suite passes all 14 tests. These checks do not replace the pending
+browser login and actual sandbox transaction tests.

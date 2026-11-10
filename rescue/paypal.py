@@ -11,6 +11,11 @@ class ProbeError(Exception):
     pass
 
 
+class NoRedirect(request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ProbeError('Unexpected PayPal redirect; request not forwarded')
+
+
 def identifier(value):
     if not re.fullmatch(r'[A-Za-z0-9_-]{1,100}', value):
         raise ProbeError('Invalid identifier')
@@ -35,7 +40,7 @@ class PayPal:
         data = None if body is None else (parse.urlencode(body).encode() if form else json.dumps(body).encode())
         req = request.Request(BASE + path, data=data, headers=headers, method=method)
         try:
-            with request.urlopen(req, timeout=25) as response:
+            with request.build_opener(NoRedirect()).open(req, timeout=25) as response:
                 return json.load(response)
         except error.HTTPError as exc:
             raise ProbeError(f'PayPal HTTP {exc.code}; response suppressed') from None

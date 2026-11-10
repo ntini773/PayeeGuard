@@ -8,6 +8,19 @@ from .paypal import ProbeError
 REDIRECT = 'http://127.0.0.1:8765/callback'
 
 
+def callback_code(path, state):
+    url = urlparse(path)
+    query = parse_qs(url.query, keep_blank_values=True)
+    states = query.get('state', [])
+    codes = query.get('code', [])
+    if (url.path != '/callback' or len(states) != 1 or len(codes) != 1
+            or not codes[0] or 'error' in query):
+        return None
+    if not secrets.compare_digest(states[0].encode(), state.encode()):
+        return None
+    return codes[0]
+
+
 def login(paypal):
     state = secrets.token_urlsafe(32)
     result = {}
@@ -17,13 +30,10 @@ def login(paypal):
             pass
 
         def do_GET(self):
-            url = urlparse(self.path)
-            query = parse_qs(url.query)
-            valid = (url.path == '/callback' and
-                secrets.compare_digest(query.get('state', [''])[0], state) and
-                len(query.get('code', [])) == 1)
+            code = callback_code(self.path, state)
+            valid = code is not None
             if valid:
-                result['code'] = query['code'][0]
+                result['code'] = code
             self.send_response(200 if valid else 400)
             self.send_header('Content-Type', 'text/plain')
             self.end_headers()
