@@ -126,3 +126,16 @@ investigate account eligibility rather than assuming the country is wrong.
 
 Sources: https://developer.paypal.com/payouts/supported-features/ and
 https://developer.paypal.com/sandbox-testing/accounts (checked 2026-11-10).
+
+## Retry with project-specific app
+
+The user authenticated the same recipient again and received another
+`PAYOUT_NOT_AVAILABLE` refusal, debug ID `f718292bd6c36`. A read-only configuration
+inspection found `payout_rescue/.env` present, with an effective client-ID suffix
+matching the user's latest login URL and differing from Counteroffer's app.
+No PayPal shell overrides were present in the agent process. This confirms the
+project-specific app is selected locally; it does not establish the country or
+Payouts eligibility of that app's linked Business account. Next inspect that exact
+app's linked sender in Developer Dashboard. If confirmed US Business, investigate
+Payouts enablement with PayPal support using the debug ID. Recipient login is
+already working and need not be repeated while the app stays unchanged.
