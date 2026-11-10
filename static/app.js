@@ -66,18 +66,21 @@ async function loadCases(selectFirst = true) {
   if (selected) render(await api('/api/cases/' + selected));
 }
 function render(data) {
+  const previous = current;
   current = data;
   const c = data.case, operator = session.user.role === 'operator', demo = session.mode === 'demo';
-  text('case-id', c.id); text('case-state', human(c.state));
-  text('case-title', c.state === 'CANCELLATION_PENDING' ? 'Original payout still unresolved' : 'Payout destination verification');
-  text('amount', `${c.currency} ${c.amount}`); text('paypal-status', c.paypal_status);
+  const simulationComplete = demo && c.mode === 'demo' && c.state === 'CLOSED_SIMULATED' &&
+    c.replacement?.simulated === true && c.replacement.status === 'SIMULATED_SUCCESS';
+  text('case-id', c.id); text('case-state', simulationComplete ? 'Completed (simulation)' : human(c.state));
+  text('case-title', simulationComplete ? 'Demo completed' : c.state === 'CANCELLATION_PENDING' ? 'Original payout still unresolved' : 'Payout destination verification');
+  text('amount', `${c.currency} ${c.amount}`); text('paypal-status', simulationComplete ? 'RETURNED (simulated)' : c.paypal_status);
   text('original-id', `Original item · ${c.original_item_id}`);
   text('last-checked', c.status_checked_at ? new Date(c.status_checked_at * 1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'Not checked');
   const reasonText = {
     RECEIVER_UNREGISTERED: 'The original payout email has no registered PayPal sandbox account. Your marketplace login and your separately authenticated PayPal account can still be valid.',
     RECEIVER_UNCONFIRMED: 'The original payout destination is unconfirmed in PayPal. This is separate from your marketplace login.'
   };
-  text('reason', c.reason ? `${reasonText[c.reason] || 'PayPal reported a payout issue.'} (${c.reason})` : c.paypal_status === 'UNCLAIMED' ? 'Unclaimed — cause not yet identified.' : 'Use Refresh status to retrieve current provider evidence.');
+  text('reason', simulationComplete ? 'Demo complete: the original return and replacement were simulated. No PayPal funds moved.' : c.reason ? `${reasonText[c.reason] || 'PayPal reported a payout issue.'} (${c.reason})` : c.paypal_status === 'UNCLAIMED' ? 'Unclaimed — cause not yet identified.' : 'Use Refresh status to retrieve current provider evidence.');
   text('original-destination', c.original_destination?.receiver ? `Originally sent to: ${c.original_destination.receiver} (${c.original_destination.recipient_type || 'destination'})` : 'Original destination will appear after a successful status refresh.');
   text('payee-name', data.payee.name); text('expected-payer', `Expected payer ID · ${data.payee.expected_payer_id}`);
   text('record-source', data.payee.record_source);
@@ -105,11 +108,16 @@ function render(data) {
   text('approval-note', c.approval ? `${c.approval.approved ? 'Approved' : 'Rejected'} by ${c.approval.operator}. Approval is bound to this destination and proposal.` : operator ? (c.proposal ? 'Approval requires sufficient evidence and a destination-change proposal.' : 'No proposal has been recorded yet. The recipient must ask the assistant to prepare a destination-change proposal; a chat statement alone is not an approval request.') : 'Your marketplace operator reviews and approves any destination change.');
   show('cancel-payout', operator && c.state === 'APPROVED');
   text('cancel-payout', demo ? 'Simulate cancellation failure' : 'Attempt original cancellation (sandbox)');
-  show('cancellation-result', !!c.cancellation_error || c.state === 'CANCELLATION_PENDING' || c.state === 'RETURNED_NO_REPLACEMENT');
-  text('cancellation-result', `${c.cancellation_error || ''} ${c.state === 'RETURNED_NO_REPLACEMENT' ? 'Original returned. Replacement sending remains disabled in this fallback.' : c.state === 'CLOSED_SIMULATED' ? 'The failure above occurred before the explicitly simulated recovery.' : 'No replacement sent. The original must be confirmed RETURNED before recovery.'}`);
+  show('cancellation-result', !simulationComplete && (!!c.cancellation_error || c.state === 'CANCELLATION_PENDING' || c.state === 'RETURNED_NO_REPLACEMENT'));
+  text('cancellation-result', `${c.cancellation_error || ''} ${c.state === 'RETURNED_NO_REPLACEMENT' ? 'Original returned. Replacement sending remains disabled in this fallback.' : 'No replacement sent. The original must be confirmed RETURNED before recovery.'}`);
   show('simulate', operator && demo && c.state === 'CANCELLATION_PENDING');
   show('replacement', !!c.replacement);
-  text('replacement', c.replacement ? `SIMULATED ONLY · ${c.replacement.status} · ${c.replacement.currency} ${c.replacement.amount} · ${c.replacement.id}. No PayPal funds moved.` : '');
+  text('replacement-title', simulationComplete ? 'Demo completed — simulated recovery' : 'Replacement record');
+  text('replacement-copy', c.replacement ? `SIMULATED ONLY · ${c.replacement.currency} ${c.replacement.amount} replacement demonstrated. No PayPal funds moved.` : '');
+  text('replacement-id', c.replacement ? `${c.replacement.status} · ${c.replacement.id}` : '');
+  show('cancellation-history', simulationComplete && !!c.cancellation_error);
+  text('cancellation-history-copy', c.cancellation_error ? `${c.cancellation_error}. This was an earlier step in the demonstration, before the simulated return and replacement. It is retained as history; it does not mean PayPal cancellation was fixed.` : '');
+  if (!previous || previous.case.id !== c.id || previous.case.state !== c.state) $('cancellation-history').open = false;
   $('audit-list').replaceChildren(...data.audit.slice().reverse().map(a => {
     const li = document.createElement('li'), time = document.createElement('span'), detail = document.createElement('div');
     time.className = 'audit-time'; time.textContent = new Date(a.at * 1000).toLocaleTimeString();

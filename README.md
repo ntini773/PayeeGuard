@@ -116,7 +116,7 @@ existing synthetic replacement, not a new one.
 To use real NVIDIA with simulated PayPal data, explicitly run:
 
 ```sh
-pixi run python -m rescue.app serve --mode demo --ai nvidia
+pixi run demo-ai
 ```
 
 ## Fresh checkout setup
@@ -181,3 +181,11 @@ with filesystem access can replace the database. This server is loopback-only,
 uses HTTP cookies for local testing and must not be exposed publicly as-is.
 No webhook endpoint, sponsor service or deployment was added; selected-case
 polling is the allowed fallback. Real replacement execution remains deferred.
+
+## UI revamp handoff
+
+[ui.md](ui.md) describes the requested redesign, PayPal identity-button branding,
+AG Studio's possible operator value, API/state contracts and regression checks.
+The current completion card groups earlier simulated cancellation errors into
+collapsed history and labels the outcome **Demo completed — simulated recovery**.
+It does not reclassify unresolved sandbox cancellations as success.

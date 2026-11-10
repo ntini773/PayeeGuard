@@ -194,3 +194,23 @@ real replacement. The demonstrated paths now include real sandbox failure handli
 and explicitly labeled simulated recovery. The additional claim-assistance and
 third-party-escalation UI scenarios and full live NVIDIA evaluation remain separate
 checks; automated tests already cover their deterministic/demo behaviors.
+
+## Completion presentation and UI handoff
+
+Completed simulation now leads with “Demo completed” / “Completed (simulation)”,
+keeps the no-funds-moved statement visible, and moves the earlier simulated HTTP
+500 into collapsed history. Synthetic replacement identifiers are expandable.
+Real unresolved sandbox errors remain visible and never receive this completion
+label. UI checks cover completion eligibility, preservation of history and open
+accordion state during polling.
+
+Added `pixi run demo-ai` as a convenience for actual NVIDIA conversations with
+simulated PayPal data. `pixi run demo` remains an explicitly scripted offline
+fixture; payment mode and assistant mode remain independent.
+
+Created [ui.md](ui.md) for the requested next-agent revamp. It documents observed
+UX problems, state/action expectations, safe conversation clearing, correct PayPal
+identity-button branding, and an AG Studio assessment grounded in official sponsor
+and product documentation. Sponsor integration must perform useful operator tasks;
+no new sponsor library or branded PayPal button was installed in this patch.
+The handoff preserves API/auth/financial invariants and calls for real-browser QA.
