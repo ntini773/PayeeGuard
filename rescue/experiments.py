@@ -55,10 +55,13 @@ class Experiments:
         before = self.record('before-cancel', self.paypal.item(item_id))
         if before.get('transaction_status') != 'UNCLAIMED':
             raise ProbeError('Cancellation requires fresh UNCLAIMED status')
+        cancellation_error = None
         try:
             self.record('cancel-response', self.paypal.cancel(item_id))
         except ProbeError as exc:
-            self.record('cancel-error', {'error': str(exc)})
+            cancellation_error = str(exc)
+            self.record('cancel-error', {'error': cancellation_error})
         # A cancel response is never accepted as final state confirmation.
         after = self.record('after-cancel', self.paypal.item(item_id))
-        return {'gate_passed': after.get('transaction_status') == 'RETURNED', 'item': after}
+        return {'gate_passed': after.get('transaction_status') == 'RETURNED',
+                'cancellation_error': cancellation_error, 'item': after}

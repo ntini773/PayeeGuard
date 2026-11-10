@@ -6,7 +6,8 @@ Date: 2026-11-10
 
 **Experiment tooling is built and locally tested. The user's terminal has now
 passed NVIDIA inference, PayPal OAuth, recipient login and an authenticated
-payer-ID payout reaching SUCCESS. Cancellation feasibility remains unproven.**
+payer-ID payout reaching SUCCESS. A separate payout reached UNCLAIMED, but
+API cancellation returned HTTP 500 and the item remains UNCLAIMED.**
 The user confirmed the existing sandbox app is configured and may
 be used. Payouts access is demonstrated by the successful transaction; sender country
 is user-confirmed, not independently inspected in the dashboard.
@@ -40,11 +41,11 @@ network solve. No environment symlink or fake installation was substituted.
 | Gate | Evidence / blocker | Status |
 |---|---|---|
 | 1. US Business sender and Payouts access | User confirms US sender; OAuth passed and PayPal accepted batch HVCBQC6NBW3PC | API access PASS; country user-confirmed |
-| 2. Real unregistered-recipient UNCLAIMED payout | No unregistered-recipient experiment reported yet | NOT RUN |
+| 2. Real unregistered-recipient UNCLAIMED payout | Item U8ZN7X3NYLJAG in batch QGWGTJQCBWW8S is UNCLAIMED with RECEIVER_UNREGISTERED | PASS |
 | 3. Login returns payer ID and account verification | User supplied login output with payer ID and verified_account string "true" | PASS in user terminal |
 | 4. Authenticated PAYPAL_ID payout reaches SUCCESS | Batch HVCBQC6NBW3PC and separate item retrieval for 4BV5LMRQQW65J both show item SUCCESS, recipient_type PAYPAL_ID, USD 0.01 | PASS in user terminal |
-| 5. Separate unclaimed payout cancellation reaches RETURNED | Cancellation runner implemented; no live unclaimed item available | NOT RUN |
-| 6. Dashboard fallback if API cancellation fails | Requires sandbox sender browser session; no actual cancellation failure tested yet | NOT RUN / conditional |
+| 5. Separate unclaimed payout cancellation reaches RETURNED | HTTP 500 INTERNAL_SERVICE_ERROR; subsequent retrieval still UNCLAIMED | FAILED attempt; RETURNED unproven |
+| 6. Dashboard fallback if API cancellation fails | API failed; try manual cancellation in sender sandbox Activity, then retrieve same item | PENDING |
 
 Earlier calls from the agent environment failed on network access. Subsequent
 user-terminal results above supersede those failures for the demonstrated gates. Errors were redacted; keys were neither
@@ -66,15 +67,15 @@ PayPal product feasibility. Do not treat unit-test fixtures as sandbox evidence.
 
 These are experiment-level checks. There is no claim of production-grade
 concurrency control, tamper-proof audit, marketplace identity matching or
-case-level recovery idempotency. The login handler's real callback behavior and
-SDK/provider interoperability still need live verification.
+case-level recovery idempotency. The user's real login and payout results verify
+the exercised integration paths; API cancellation has failed in the observed attempt.
 
 ## Next action and stop boundary
 
 Follow [README.md](README.md) from a terminal with service access, using the
-existing sandbox app. Choose an unregistered test email, complete recipient
-login, and save observed item status transitions. Update this report with the
-actual gate results. Then apply TASK.md's go/no-go matrix before requesting any
+existing sandbox app. Attempt the dashboard cancellation fallback for item
+U8ZN7X3NYLJAG, then retrieve that item to check for RETURNED. Update this report
+with the observed fallback result. Then apply TASK.md's go/no-go matrix before requesting any
 further application build. UI, agent framework, payee database, approvals,
 replacement workflow, webhooks, sponsor integrations and hosting remain deferred.
 
@@ -179,3 +180,20 @@ the tester that is not registered in the PayPal sandbox. Verify UNCLAIMED before
 attempting cancellation and independently confirm RETURNED afterward. Do not
 attempt to cancel the successful payer-ID item. Keep the application build
 on hold until the cancellation experiment establishes the supported scope.
+
+## Unclaimed gate passed; cancellation API failed
+
+The user's separate email experiment created batch `QGWGTJQCBWW8S`, item
+`U8ZN7X3NYLJAG`, USD 0.01. The actual item reports `UNCLAIMED` and
+`RECEIVER_UNREGISTERED`. The cancel command returned `gate_passed: false` and a
+fresh UNCLAIMED item. Read-only inspection of the local experiment database
+found the cancellation error: HTTP 500 `INTERNAL_SERVICE_ERROR`, debug ID
+`f360717bbcc19`. The error was previously saved but omitted from the displayed
+result. The probe now includes its redacted `cancellation_error`; all 17 tests
+pass, including updated assertions covering that field.
+
+No replacement was created by the cancel command. The original remains claimable.
+TASK.md's next experiment is manual cancellation in the sandbox sender dashboard,
+followed by `pixi run probe item U8ZN7X3NYLJAG`. If no Cancel control exists or it
+fails, record that limitation. The current evidence supports authenticated
+identity/payer-ID payout feasibility, but not automatic cancellation/recovery.

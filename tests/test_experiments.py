@@ -53,14 +53,18 @@ class ExperimentsTest(unittest.TestCase):
     def test_cancel_rechecks_even_after_timeout(self):
         self.api.item.side_effect = [{'transaction_status': 'UNCLAIMED'}, {'transaction_status': 'RETURNED'}]
         self.api.cancel.side_effect = ProbeError('timeout')
-        self.assertTrue(self.store.cancel('I1')['gate_passed'])
+        result = self.store.cancel('I1')
+        self.assertTrue(result['gate_passed'])
+        self.assertEqual(result['cancellation_error'], 'timeout')
         self.assertEqual(self.api.item.call_count, 2)
         self.api.create.assert_not_called()
 
     def test_cancel_response_alone_never_passes(self):
         self.api.item.return_value = {'transaction_status': 'UNCLAIMED'}
         self.api.cancel.return_value = {'transaction_status': 'RETURNED'}
-        self.assertFalse(self.store.cancel('I1')['gate_passed'])
+        result = self.store.cancel('I1')
+        self.assertFalse(result['gate_passed'])
+        self.assertIsNone(result['cancellation_error'])
         self.api.create.assert_not_called()
 
     def test_cancel_blocks_every_other_status(self):
