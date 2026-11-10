@@ -7,7 +7,13 @@ Date: 2026-11-10
 **Experiment tooling is built and locally tested. The user's terminal has now
 passed NVIDIA inference, PayPal OAuth, recipient login and an authenticated
 payer-ID payout reaching SUCCESS. A separate payout reached UNCLAIMED, but
-API cancellation returned HTTP 500 and the item remains UNCLAIMED.**
+API cancellation returned HTTP 500 and the last retrieved item is UNCLAIMED.
+The dashboard fallback also failed to retrieve the payment data.**
+
+**Decision: conditional GO for a future identity/destination-verification flow;
+NO-GO for claiming working automatic cancellation and recovery today.** The
+requested feasibility milestone is complete with these mixed results. Further
+application development awaits the user's instruction.
 The user confirmed the existing sandbox app is configured and may
 be used. Payouts access is demonstrated by the successful transaction; sender country
 is user-confirmed, not independently inspected in the dashboard.
@@ -45,7 +51,7 @@ network solve. No environment symlink or fake installation was substituted.
 | 3. Login returns payer ID and account verification | User supplied login output with payer ID and verified_account string "true" | PASS in user terminal |
 | 4. Authenticated PAYPAL_ID payout reaches SUCCESS | Batch HVCBQC6NBW3PC and separate item retrieval for 4BV5LMRQQW65J both show item SUCCESS, recipient_type PAYPAL_ID, USD 0.01 | PASS in user terminal |
 | 5. Separate unclaimed payout cancellation reaches RETURNED | HTTP 500 INTERNAL_SERVICE_ERROR; subsequent retrieval still UNCLAIMED | FAILED attempt; RETURNED unproven |
-| 6. Dashboard fallback if API cancellation fails | API failed; try manual cancellation in sender sandbox Activity, then retrieve same item | PENDING |
+| 6. Dashboard fallback if API cancellation fails | User attempted sender dashboard cancellation; dashboard could not retrieve data | Attempted; unavailable in this test |
 
 Earlier calls from the agent environment failed on network access. Subsequent
 user-terminal results above supersede those failures for the demonstrated gates. Errors were redacted; keys were neither
@@ -72,12 +78,22 @@ the exercised integration paths; API cancellation has failed in the observed att
 
 ## Next action and stop boundary
 
-Follow [README.md](README.md) from a terminal with service access, using the
-existing sandbox app. Attempt the dashboard cancellation fallback for item
-U8ZN7X3NYLJAG, then retrieve that item to check for RETURNED. Update this report
-with the observed fallback result. Then apply TASK.md's go/no-go matrix before requesting any
-further application build. UI, agent framework, payee database, approvals,
-replacement workflow, webhooks, sponsor integrations and hosting remain deferred.
+The feasibility experiments have produced a decision under TASK.md §5: payer-ID
+payouts work, but neither cancellation route succeeded in this test. Keep item
+`U8ZN7X3NYLJAG` unresolved; its last authoritative status is UNCLAIMED. Do not
+create a replacement unless a fresh retrieval confirms RETURNED and the future
+approval/policy workflow permits it.
+
+Optional provider follow-up: report cancellation HTTP 500 INTERNAL_SERVICE_ERROR,
+debug ID `f360717bbcc19`, item `U8ZN7X3NYLJAG`, batch `QGWGTJQCBWW8S`, and the
+sandbox dashboard retrieval failure to PayPal technical support. A later
+`pixi run probe item U8ZN7X3NYLJAG` can check for a changed status without mutation.
+
+If the user authorizes the next build, TASK.md supports identity and destination
+verification with the cancellation failure demonstrated honestly. Any simulated
+RETURNED/replacement branch must be explicitly labeled. UI, agent framework,
+marketplace identity/payee matching, approvals, recovery execution, webhooks,
+sponsor integrations and hosting remain deferred under the current instruction.
 
 ## Documentation checked
 
@@ -197,3 +213,24 @@ TASK.md's next experiment is manual cancellation in the sandbox sender dashboard
 followed by `pixi run probe item U8ZN7X3NYLJAG`. If no Cancel control exists or it
 fails, record that limitation. The current evidence supports authenticated
 identity/payer-ID payout feasibility, but not automatic cancellation/recovery.
+
+## Dashboard fallback result and milestone closeout
+
+The user attempted cancellation through the sender sandbox dashboard and received:
+"Sorry, we couldn't retrieve your data. Please try again later."
+This establishes that manual cancellation was unavailable in the observed test;
+it does not prove a permanent PayPal outage or that manual cancellation can never
+work. No RETURNED status has been observed, and no replacement has been created
+by this harness. The independent successful payer-ID experiment is not a recovery
+replacement.
+
+Delivered: isolated Pixi setup and validated lock, NVIDIA setup using the existing
+private key, sandbox OAuth and identity/payout/cancel experiment tooling, durable
+experiment IDs and saved evidence, 17 passing initial tests, feature-by-feature
+commits, runbook and this report. All six feasibility experiments now have
+observed outcomes (four successful, API cancellation failed, dashboard fallback
+unavailable). The user-terminal evidence supplies the live results because the
+agent environment's network is restricted. Experiment order differed from the
+suggested list: recipient login and payer-ID payout were exercised before the
+unregistered-recipient payout. The latter remained a separate cancellation item.
+The requested stop boundary is preserved; no subsequent application phase was built.
