@@ -10,6 +10,10 @@ from pathlib import Path
 
 
 def main():
+    # Render runs `python deploy/start.py`, which puts deploy/ on the path, not the repository root.
+    root = Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(root))
+    os.chdir(root)
     runtime = Path(os.environ['RESCUE_RUNTIME_DIR'])
     if not os.environ.get('RESCUE_PUBLIC_ORIGIN', '').startswith('https://'):
         raise SystemExit('Set RESCUE_PUBLIC_ORIGIN to the exact HTTPS service origin')
@@ -20,9 +24,9 @@ def main():
         from rescue import judge_setup  # first start only: needs the JUDGE_* variables
         print(judge_setup.provision(runtime, os.environ.get('JUDGE_ACTIVE_PAYER_ID', ''),
                                     os.environ.get('JUDGE_SELLER_LEGAL_NAME', ''), os.environ.get('JUDGE_SELLER_COUNTRY', ''),
-                                    require_passwords=True))
+                                    require_passwords=True), flush=True)
     else:
-        print('Existing database found on the disk. Judge accounts were not touched.')
+        print('Existing database found on the disk. Judge accounts were not touched.', flush=True)
     os.execv(sys.executable, [sys.executable, '-m', 'rescue.app', 'serve', '--mode', 'sandbox', '--ai', 'nvidia',
                               '--runtime-dir', str(runtime)])
 

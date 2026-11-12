@@ -9,7 +9,8 @@ Built for the **PayPal AI Hackathon** (PayPal sandbox + AI).
 
 | | |
 |---|---|
-| **Watch** | Demo video, under 3 minutes: `<ADD YOUR PUBLIC YOUTUBE URL HERE>` (local copy: [`docs/demo/payeeguard-demo.mp4`](docs/demo/payeeguard-demo.mp4), captions [`.srt`](docs/demo/payeeguard-demo.srt)) |
+| **Watch** | Demo video, under 3 minutes: https://youtu.be/zTndvYqMAP0 (local copy: [`docs/demo/payeeguard-demo.mp4`](docs/demo/payeeguard-demo.mp4), captions [`.srt`](docs/demo/payeeguard-demo.srt)) |
+| **Hosted demo** | https://payeeguard.onrender.com (sandbox only; logins are in the Devpost *Testing instructions* field) |
 | **Try it** | [Run it](#run-it-setup-and-run-instructions) (no keys needed for demo mode) or [judge testing instructions](docs/JUDGE_TESTING.md) |
 | **Understand it** | [Why PayPal and AI](#why-paypal-and-ai) · [Why each sponsor tool mattered](#why-each-sponsor-tool-mattered) · [Architecture](docs/architecture.md) · [API](docs/openapi.yaml) |
 | **License** | MIT, see [`LICENSE`](LICENSE) |
