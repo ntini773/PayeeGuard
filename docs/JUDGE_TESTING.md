@@ -48,13 +48,32 @@ The first time PayPal sees B or T for this app it shows a consent page. Press **
 
 ## 4. Local run
 
-**Keys you need to get (all free):** one **NVIDIA API key** from [build.nvidia.com](https://build.nvidia.com) (it covers every AI feature, see [`docs/MODELS.md`](MODELS.md)), and a **PayPal sandbox app** (Client ID and Secret from developer.paypal.com). An AG Studio trial key is optional. No other key is needed.
+Everything, including the PayPal sandbox app's Client ID and Secret, is in the private file on Devpost. This is the generic version.
 
+**Tools:** `git` and [pixi](https://pixi.sh). Pixi installs Python 3.11 **and Node 22 with npm**, so you do not install Node or npm yourself. Install pixi with `curl -fsSL https://pixi.sh/install.sh | bash` (Linux, macOS), `brew install pixi`, or on Windows `powershell -ExecutionPolicy ByPass -c "irm -useb https://pixi.sh/install.ps1 | iex"`.
+
+**Keys:**
+- **PayPal sandbox app Client ID and Secret:** in the Devpost field.
+- **NVIDIA API key (free, one key for all AI):** go to [build.nvidia.com](https://build.nvidia.com), sign in, open a model page (for example `nvidia/nemotron-3.5-bolt-e4b`), press **Get API Key**, and copy the `nvapi-` key. See [`docs/MODELS.md`](MODELS.md).
+- **AG Studio trial key (optional, free, 45 days):** request it at [ag-grid.com](https://www.ag-grid.com) and put it in `ui/.env.local` as `VITE_AG_STUDIO_LICENSE=<key>` before building the UI. Without it the dashboards may not render. The hosted demo has one.
+- No ElevenLabs key is needed.
 
 ```sh
+git clone https://github.com/ntini773/PayeeGuard.git && cd PayeeGuard
 pixi install
-cd ui && npm ci && NODE_OPTIONS=--max-old-space-size=6144 npm run build && cd ..
-cp .env.example .env     # fill NVIDIA_API_KEY, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
+
+cd ui
+echo 'VITE_AG_STUDIO_LICENSE=<your key>' > .env.local        # optional
+NODE_OPTIONS=--max-old-space-size=6144 pixi run npm ci
+NODE_OPTIONS=--max-old-space-size=6144 pixi run npm run build
+cd ..
+
+cat > .env <<'EOF'
+NVIDIA_API_KEY=<your nvapi- key>
+PAYPAL_CLIENT_ID=<from the Devpost field>
+PAYPAL_CLIENT_SECRET=<from the Devpost field>
+RESCUE_PAYPAL_SCOPES="openid profile address https://uri.paypal.com/services/paypalattributes"
+EOF
 
 # three values from the Devpost field: Account A's payer ID, and the seller's name and country on file
 export JUDGE_ACTIVE_PAYER_ID=<from Devpost>
@@ -66,7 +85,7 @@ cat .runtime/judge/judge-accounts.json     # read the generated passwords
 pixi run judge-serve                       # open http://127.0.0.1:8765
 ```
 
-Your PayPal sandbox app needs *Log in with PayPal* with the Profile and Address attributes, and the return URL `http://127.0.0.1:8765/api/v1/paypal/callback`. Then follow Cases 1 and 2 with the **generated** app passwords and the Devpost PayPal accounts. Setup never changes an existing login. To start over, delete `.runtime/judge` and run it again.
+The PayPal sandbox app in the Devpost field already has the return URL `http://127.0.0.1:8765/api/v1/paypal/callback`. Then follow Cases 1 and 2 with the **generated** app passwords and the Devpost PayPal accounts. Setup never changes an existing login. To start over, delete `.runtime/judge` and run it again. With no keys at all, use demo mode in the [README](../README.md).
 
 ## For the team: how the hosted credentials stay frozen
 
