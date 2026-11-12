@@ -96,9 +96,10 @@ export default function StudioDashboard({ sources, initialState, height = 640, v
     setAddedRows((n) => n + 14);
     setTimeout(() => document.querySelector('[data-testid="studio-dashboard"]')?.scrollIntoView({ block: 'start', behavior: 'smooth' }), 150);
   };
-  // Default: Studio's own tools, driven by a stronger NVIDIA model (RESCUE_STUDIO_MODEL, deepseek by default).
-  // ?studioTools=0 switches to the small-model picker pipeline, which is faster and needs no second model.
-  const studioToolsMode = !(typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('studioTools') === '0');
+  // Default: the small-model picker pipeline. It answers in under a second and needs no second model.
+  // ?studioTools=1 uses Studio's own tools through a stronger NVIDIA model (RESCUE_STUDIO_MODEL). Free hosted endpoints for
+  // those models can be slow or overloaded, so it is opt-in.
+  const studioToolsMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('studioTools') === '1';
   useEffect(() => { setViewHandler(studioToolsMode ? null : (onAsk ?? null), helpText); return () => setViewHandler(null); });
   const licenseKey = import.meta.env.VITE_AG_STUDIO_LICENSE as string | undefined;
   // The clean full-width view is the default. Studio's AI panel needs edit mode, which adds side panels, so it opens on demand.

@@ -31,8 +31,8 @@ services:
         sync: false
       - key: PAYPAL_CLIENT_SECRET
         sync: false
-      - key: RESCUE_STUDIO_MODEL        # AG Studio AI Assistant chat model (same NVIDIA key)
-        value: deepseek-ai/deepseek-v4.1-flash
+      - key: RESCUE_STUDIO_MODEL        # only used by the opt-in native Studio mode (?studioTools=1); same NVIDIA key
+        value: mistralai/mistral-large-4-1t-a52b
       - key: RESCUE_PAYPAL_SCOPES       # needed so Log in with PayPal returns name and country (name and country checks)
         value: openid profile address https://uri.paypal.com/services/paypalattributes
       - key: VITE_AG_STUDIO_LICENSE     # build time: AG Studio trial key

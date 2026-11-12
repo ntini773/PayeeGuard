@@ -120,7 +120,7 @@ The project was written with AI coding assistants (Claude Code, Codex, Antigravi
 | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` | Real PayPal **sandbox** logins and payouts | [developer.paypal.com](https://developer.paypal.com) > Apps & Credentials > Sandbox | Demo mode simulates PayPal |
 | `VITE_AG_STUDIO_LICENSE` (in `ui/.env.local`) | AG Studio dashboards (commercial; free 45-day trial) | [ag-grid.com](https://www.ag-grid.com) | The dashboards area may not render (not verified). The rest of the app works. |
 
-The AG Studio AI Assistant chat uses Studio's own tools through a stronger NVIDIA-hosted model, `deepseek-ai/deepseek-v4.1-flash` by default (same `NVIDIA_API_KEY`, set `RESCUE_STUDIO_MODEL` to change it). Add `?studioTools=0` to a dashboard URL to use the faster small-model picker instead. Other optional settings: `RESCUE_DASHBOARD_MODEL` (the Ask box picker), `RESCUE_FAST_LANE=on`. All are listed in `.env.example`.
+The AG Studio AI Assistant chat and the Ask box use the small NVIDIA model through a fixed menu of views (fast, one key). Add `?studioTools=1` to a dashboard URL to use Studio's own tools through a stronger NVIDIA-hosted model (`RESCUE_STUDIO_MODEL`, `mistralai/mistral-large-4-1t-a52b` by default, same `NVIDIA_API_KEY`). That mode depends on free hosted endpoints that can be slow. Other optional settings: `RESCUE_DASHBOARD_MODEL` (the Ask box picker), `RESCUE_FAST_LANE=on`. All are listed in `.env.example`.
 
 ### 2. Install and build (once)
 

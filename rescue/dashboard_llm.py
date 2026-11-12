@@ -9,8 +9,9 @@ Sizes, roles and tool names are checked before anything is sent.
 import json
 import re
 
-# Studio's own tool calls need a stronger model than the small default. Same NVIDIA key. Override with RESCUE_STUDIO_MODEL.
-DEFAULT_STUDIO_MODEL = 'deepseek-ai/deepseek-v4.1-flash'
+# Native Studio mode (?studioTools=1) needs a stronger model than the small default. Same NVIDIA key. Override with RESCUE_STUDIO_MODEL.
+# mistral-large gave valid tool calls in testing. deepseek-v4.1-flash did too, but its free endpoint timed out on 2026-11-12.
+DEFAULT_STUDIO_MODEL = 'mistralai/mistral-large-4-1t-a52b'
 from urllib import error, request
 
 URL = 'https://integrate.api.nvidia.com/v1/chat/completions'
