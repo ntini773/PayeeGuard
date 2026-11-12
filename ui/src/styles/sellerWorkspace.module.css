@@ -1,0 +1,37 @@
+.workspace {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 24px 32px 56px;
+  --line-dark: #dfe5df;
+  --text: #26322b;
+  --muted: #626f66;
+  --muted-dark: #667169;
+  --night: #f7f9f5;
+  --workspace-card: #f6f8f4;
+  color: var(--text);
+}
+.workspace [data-testid="session-bar"] { padding: 15px 0 28px; margin-bottom: 28px; }
+.workspace [data-testid="session-bar"] h1 { font-size: 34px; font-weight: 500; letter-spacing: -.035em; }
+.workspace [data-testid="session-bar"] h1 + p { font-size: 15px; font-weight: 400; }
+.workspace [data-testid="session-bar"] > div:first-child > div > span { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; font-size: 14px; }
+.workspace .columns { grid-template-columns: minmax(0, 1fr) 420px; gap: 28px; }
+.workspace .assistantColumn { margin-top: 0; top: 104px; }
+.accounts { margin-top: 0; }
+.accounts > div { margin-bottom: 0; padding: 26px; border-radius: 12px; gap: 28px; }
+.accounts > div > div:first-child, .accounts > div > div:last-child { background: transparent; border: 0; padding: 0; min-width: 0; }
+.accounts > div > div:first-child > div:first-child, .accounts > div > div:last-child > div:first-child { font: 400 14px var(--font-sans); letter-spacing: 0; text-transform: none; color: var(--muted); margin-bottom: 5px; }
+.accounts > div > div:first-child > div:nth-child(2), .accounts > div > div:last-child > div:nth-child(2) { font-size: 20px; font-weight: 500; letter-spacing: 0; overflow-wrap: anywhere; }
+.accounts p { font-size: 15px; line-height: 1.6; margin-top: 4px; }
+.section { margin-top: 24px; padding: 26px; border: 1px solid var(--line-dark); border-radius: 12px; background: white; display: grid; gap: 13px; }
+.section h2 { font-weight: 500; letter-spacing: -.025em; }
+.section p { line-height: 1.7; max-width: 78ch; }
+.section[aria-label="Next step"] { background: #f0f5ed; border-color: #cad8c2; border-left: 3px solid #6b8a55; padding: 26px 28px; }
+.section[aria-label="Next step"] h2 { font-size: 24px !important; }
+.section[aria-label="Next step"] p { font-size: 16px !important; color: #52604e !important; }
+.section[aria-label="Next step"] button { margin-top: 3px; }
+.stepActions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.primaryActions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.cancelButton { margin-left: auto; background: transparent; box-shadow: none; }
+@media (max-width: 1100px) { .workspace .columns { grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; } }
+@media (max-width: 1000px) { .workspace .columns { grid-template-columns: minmax(0,1fr); } .workspace .assistantColumn { position: static; } }
+@media (max-width: 600px) { .workspace { padding-inline: 20px; } }

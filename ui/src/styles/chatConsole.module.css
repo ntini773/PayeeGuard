@@ -1,0 +1,311 @@
+.chatContainer {
+  background: var(--night-2);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  height: 520px;
+  overflow: hidden;
+}
+
+.safetyBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 14px;
+  background: rgba(var(--info-rgb), 0.1);
+  border-bottom: 1px solid var(--line-dark);
+  font-size: var(--text-xs);
+  color: var(--accent-text);
+}
+
+.safetyIcon {
+  color: var(--sky);
+  flex-shrink: 0;
+}
+
+.staleBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 14px;
+  background: rgba(var(--brand-rgb), 0.15);
+  border-bottom: 1px solid rgba(var(--brand-rgb), 0.3);
+  font-size: var(--text-xs);
+  color: var(--gold-ink);
+}
+
+.unavailableBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: rgba(217, 54, 62, 0.15);
+  border-bottom: 1px solid rgba(217, 54, 62, 0.3);
+  font-size: var(--text-xs);
+  color: var(--bad-text);
+}
+
+.messagesFeed {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.messageWrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+}
+
+.sellerAlign {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.assistantAlign {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.avatarRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 4px;
+  font-size: var(--text-xs);
+}
+
+.senderName {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.untrustedPill {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--gold-accent);
+  background: rgba(var(--brand-rgb), 0.12);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed rgba(var(--brand-rgb), 0.35);
+}
+
+.advisoryPill {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--sky);
+  background: rgba(var(--info-rgb), 0.12);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(var(--info-rgb), 0.3);
+}
+
+.avatarSeller {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(var(--brand-rgb), 0.2);
+  color: var(--gold-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarAssistant {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(var(--info-rgb), 0.25);
+  color: var(--sky);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tool Activity line */
+.toolActivityLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.toolIcon {
+  color: var(--muted);
+}
+
+.toolPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(var(--sunk-rgb), 0.6);
+  border: 1px solid var(--line-dark);
+  color: var(--muted);
+}
+
+.activeDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--sky);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.deniedPill {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(217, 54, 62, 0.15);
+  color: var(--bad-text);
+  border: 1px solid rgba(217, 54, 62, 0.3);
+}
+
+/* Bubbles */
+.bubble {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.sellerBubble {
+  background: rgba(var(--brand-rgb), 0.12);
+  border: 1px dashed rgba(var(--brand-rgb), 0.35);
+  color: var(--text);
+  border-bottom-right-radius: 4px;
+}
+
+.assistantBubble {
+  background: rgba(var(--sunk-rgb), 0.7);
+  border: 1px solid var(--line-dark);
+  color: var(--text);
+  border-bottom-left-radius: 4px;
+}
+
+.bubbleText {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Suggestions */
+.suggestionsContainer {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.suggestionsPrompt {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.suggestionsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.suggestionChip {
+  background: rgba(var(--info-rgb), 0.1);
+  border: 1px solid rgba(var(--info-rgb), 0.3);
+  color: var(--accent-text);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  text-align: left;
+}
+
+.suggestionChip:hover {
+  background: rgba(var(--info-rgb), 0.25);
+  border-color: var(--sky);
+}
+
+.typingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: var(--muted);
+  padding: 6px 12px;
+}
+
+.dotPulse {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sky);
+  animation: pulse 1s infinite;
+}
+
+/* Composer Area */
+.composerArea {
+  padding: var(--space-3) var(--space-4);
+  background: rgba(var(--sunk-rgb), 0.5);
+  border-top: 1px solid var(--line-dark);
+}
+
+.composerWrapper {
+  display: flex;
+  flex-direction: column;
+  background: var(--night);
+  border: 1.5px solid var(--line-dark);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  transition: border-color var(--transition-fast);
+}
+
+.composerWrapper:focus-within {
+  border-color: var(--sky);
+}
+
+.textarea {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  resize: none;
+  outline: none;
+  width: 100%;
+}
+
+.composerFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.charCount {
+  font-size: var(--text-xs);
+  color: var(--muted-dark);
+}
+
+.composerHint {
+  font-size: var(--text-xs);
+  color: var(--muted-dark);
+  margin: 4px 0 0;
+  text-align: center;
+}

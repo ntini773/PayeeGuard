@@ -1,0 +1,332 @@
+.flowWrapper {
+  background: var(--night-2);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(var(--sunk-rgb), 0.6);
+  border-bottom: 1px solid var(--line-dark);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.iconGold {
+  color: var(--gold);
+}
+
+.iconSky {
+  color: var(--sky);
+}
+
+.liveBadge {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ok-text);
+  background: rgba(31, 169, 113, 0.15);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(31, 169, 113, 0.35);
+}
+
+.simBadge {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  background: rgba(var(--brand-rgb), 0.12);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed rgba(var(--brand-rgb), 0.4);
+}
+
+.viewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid var(--line-dark);
+  color: var(--muted);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.viewBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.activeViewBtn {
+  background: var(--night-3);
+  border-color: var(--sky);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.graphContainer {
+  height: 480px;
+  width: 100%;
+  position: relative;
+}
+
+/* Custom Nodes */
+.customNode {
+  background: var(--night);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  min-width: 170px;
+  max-width: 190px;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-family: var(--font-sans);
+}
+
+.customNode:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(var(--info-rgb), 0.35);
+}
+
+.handle {
+  width: 8px;
+  height: 8px;
+  background: var(--sky);
+  border: 2px solid var(--night);
+}
+
+/* Node Types */
+.trusted {
+  border: 2px solid var(--sky);
+}
+
+.untrusted {
+  border: 2px dashed rgba(var(--brand-rgb), 0.6);
+}
+
+.human {
+  border: 2px solid var(--gold);
+}
+
+.advisory {
+  border: 2px dashed var(--accent-text);
+}
+
+.external {
+  border: 2px solid #5a78a6;
+}
+
+/* Node States */
+.state_done {
+  opacity: 1;
+}
+
+.state_active {
+  box-shadow: 0 0 16px rgba(var(--brand-rgb), 0.4);
+}
+
+.state_pending {
+  opacity: 0.65;
+}
+
+.state_blocked {
+  opacity: 0.45;
+  filter: grayscale(0.5);
+}
+
+.nodeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.nodeLabel {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.nodeSub {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.lockBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--accent-text);
+  background: rgba(var(--info-rgb), 0.15);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* State indicators */
+.stateDone {
+  color: var(--ok);
+}
+
+.stateActiveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulseDot 1.2s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.3; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+.statePending {
+  color: var(--muted);
+}
+
+.stateBlocked {
+  color: var(--bad);
+}
+
+/* Icon colors */
+.iconTrusted { color: var(--sky); }
+.iconHuman { color: var(--gold); }
+.iconAdvisory { color: var(--accent-text); }
+.iconExternal { color: #8fa5c7; }
+.iconUntrusted { color: var(--gold); }
+
+/* Accessible List */
+.accessibleList {
+  list-style: decimal;
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.accessibleItem {
+  padding: 8px 12px;
+  background: rgba(var(--sunk-rgb), 0.5);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-sm);
+}
+
+.accessibleBadge {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+/* Node Drawer */
+.nodeDrawer {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 320px;
+  max-width: calc(100% - 24px);
+  background: var(--night);
+  border: 1.5px solid var(--sky);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 50;
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line-dark);
+  color: var(--text);
+}
+
+.closeDrawerBtn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.drawerMetaLabel {
+  display: block;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.drawerTypeValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--sky);
+}
+
+.drawerDesc {
+  font-size: var(--text-xs);
+  color: var(--text);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.drawerRule {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--gold);
+}
+
+/* React Flow ships light controls. Match the dark theme. */
+.graphContainer :global(.react-flow__controls-button) {
+  background: var(--night-2);
+  border-bottom: 1px solid var(--line-dark);
+  color: var(--text);
+  fill: var(--text);
+}
+.graphContainer :global(.react-flow__controls-button:hover) {
+  background: var(--night-3);
+}
+.graphContainer :global(.react-flow__controls-button svg) {
+  fill: var(--text);
+}
+.graphContainer :global(.react-flow__attribution) {
+  background: transparent;
+  color: var(--muted);
+}
+
+.toolbar { background: #f0f3e9; }
+.customNode { border-width: 1px; border-radius: 7px; background: #ffffff; box-shadow: 0 3px 12px #1f301e06; }
+.state_pending { opacity: 1; background: #f7f9f2; }
+.state_blocked { opacity: 1; filter: none; border-color: #c77c74; background: #fff5f2; }
+.state_active { box-shadow: 0 0 0 3px #ddeacd; }
+.untrusted { border: 1px dashed #ba9a60; }
+.advisory { border-width: 1px; }
+.trusted, .human, .external { border-width: 1px; }
+.external { border-color: #7a9e8d; }
+
+/* Vendor attribution must remain legible at normal browser zoom. */
+.graphContainer :global(.react-flow__attribution) { font-size: var(--text-xs); }

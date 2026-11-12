@@ -1,0 +1,270 @@
+Running your collection...
+postman
+
+Payout Rescue destination API — disposable fixture
+
+Root Confirm isolated fixture
+
+  GET http://127.0.0.1:8765/api/session [200 OK, 584 B, 8 ms]
+  Pass  HTTP 200
+
+Root Anonymous denied
+
+  GET http://127.0.0.1:8765/api/v1/destination-change-requests/chg_00000000000000000000000000000000 [401 Unauthorized, 612 B, 8 ms]
+  Pass  HTTP 401
+
+Root Login creator
+
+  POST http://127.0.0.1:8765/api/login [200 OK, 643 B, 39 ms]
+  Pass  HTTP 200
+
+Root Session creator
+
+  GET http://127.0.0.1:8765/api/session [200 OK, 660 B, 3 ms]
+  Pass  HTTP 200
+
+Root Create pending request
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests [201 Created, 1.46 KB, 19 ms]
+  Pass  HTTP 201
+  Pass  Held pending request
+
+Root Idempotent replay
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests [201 Created, 1.46 KB, 6 ms]
+  Pass  HTTP 201
+  Pass  Same case
+
+Root Payload conflict
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests [409 Conflict, 615 B, 6 ms]
+  Pass  HTTP 409
+
+Root Read status
+
+  GET http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645 [200 OK, 1.45 KB, 5 ms]
+  Pass  HTTP 200
+  Pass  Correlation ID
+
+Root Read /summary
+
+  GET http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/summary [200 OK, 747 B, 8 ms]
+  Pass  HTTP 200
+  Pass  Correlation ID
+
+Root Read /events
+
+  GET http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/events [200 OK, 901 B, 5 ms]
+  Pass  HTTP 200
+  Pass  Correlation ID
+
+Root Message
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/messages [200 OK, 1.45 KB, 24 ms]
+  Pass  HTTP 200
+
+Root Message replay
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/messages [200 OK, 1.45 KB, 6 ms]
+  Pass  HTTP 200
+
+Root Reject authority injection
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests [400 Bad Request, 613 B, 9 ms]
+  Pass  HTTP 400
+
+Root Login staff
+
+  POST http://127.0.0.1:8765/api/login [200 OK, 643 B, 36 ms]
+  Pass  HTTP 200
+
+Root Session staff
+
+  GET http://127.0.0.1:8765/api/session [200 OK, 658 B, 3 ms]
+  Pass  HTTP 200
+
+Root Staff cannot initiate
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests [403 Forbidden, 615 B, 7 ms]
+  Pass  HTTP 403
+
+Root Login external
+
+  POST http://127.0.0.1:8765/api/login [200 OK, 643 B, 32 ms]
+  Pass  HTTP 200
+
+Root Session external
+
+  GET http://127.0.0.1:8765/api/session [200 OK, 661 B, 3 ms]
+  Pass  HTTP 200
+
+Root External cannot review
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/review [403 Forbidden, 615 B, 7 ms]
+  Pass  HTTP 403
+
+Root No activation endpoint
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/activate [404 Not Found, 605 B, 4 ms]
+  Pass  HTTP 404
+
+Root Login operator
+
+  POST http://127.0.0.1:8765/api/login [200 OK, 643 B, 31 ms]
+  Pass  HTTP 200
+
+Root Session operator
+
+  GET http://127.0.0.1:8765/api/session [200 OK, 660 B, 3 ms]
+  Pass  HTTP 200
+
+Root Operator cannot skip evidence
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/review [409 Conflict, 614 B, 5 ms]
+  Pass  HTTP 409
+
+Root Scoped case queue
+
+  GET http://127.0.0.1:8765/api/v1/destination-change-requests [200 OK, 2.04 KB, 4 ms]
+  Pass  HTTP 200
+  Pass  Scoped queue
+
+Root Reject payout destination injection
+
+  POST http://127.0.0.1:8765/api/v1/marketplace-payouts/earning-1/execute [400 Bad Request, 613 B, 4 ms]
+  Pass  HTTP 400
+
+Root Execute stored synthetic earning through gate
+
+  POST http://127.0.0.1:8765/api/v1/marketplace-payouts/earning-1/execute [200 OK, 879 B, 15 ms]
+  Pass  HTTP 200
+  Pass  Simulation only
+
+Root Same earning cannot pay twice
+
+  POST http://127.0.0.1:8765/api/v1/marketplace-payouts/earning-1/execute [200 OK, 879 B, 6 ms]
+  Pass  HTTP 200
+  Pass  Same durable operation
+
+Root Login blocked-seller reviewer
+
+  POST http://127.0.0.1:8765/api/login [200 OK, 643 B, 32 ms]
+  Pass  HTTP 200
+
+Root Blocked-seller session
+
+  GET http://127.0.0.1:8765/api/session [200 OK, 668 B, 4 ms]
+  Pass  HTTP 200
+
+Root Cross-seller read denied
+
+  GET http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645 [404 Not Found, 610 B, 7 ms]
+  Pass  HTTP 404
+
+Root Compromise gate blocks payout
+
+  POST http://127.0.0.1:8765/api/v1/marketplace-payouts/blocked-earning/execute [409 Conflict, 606 B, 6 ms]
+  Pass  HTTP 409
+  Pass  Backend hold
+
+Root Login creator (extra checks)
+
+  POST http://127.0.0.1:8765/api/login [200 OK, 643 B, 32 ms]
+  Pass  HTTP 200
+
+Root Session creator (extra checks)
+
+  GET http://127.0.0.1:8765/api/session [200 OK, 660 B, 3 ms]
+  Pass  HTTP 200
+
+Root Seller view hides reviewer-only fields
+
+  GET http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645 [200 OK, 1.45 KB, 5 ms]
+  Pass  HTTP 200
+  Pass  No AI assessment for the seller
+  Pass  No risk flags, facts or fast-lane status for the seller
+
+Root Seller cannot record evidence
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/evidence [403 Forbidden, 615 B, 9 ms]
+  Pass  HTTP 403
+
+Root Seller help chat answers without any case data
+
+  POST http://127.0.0.1:8765/api/v1/seller-guide [200 OK, 801 B, 5 ms]
+  Pass  HTTP 200
+  Pass  Reply is text
+  Pass  Source is labelled
+
+Root Seller help chat rejects bad history
+
+  POST http://127.0.0.1:8765/api/v1/seller-guide [400 Bad Request, 613 B, 4 ms]
+  Pass  HTTP 400
+
+Root Login operator (extra checks)
+
+  POST http://127.0.0.1:8765/api/login [200 OK, 643 B, 31 ms]
+  Pass  HTTP 200
+
+Root Session operator (extra checks)
+
+  GET http://127.0.0.1:8765/api/session [200 OK, 660 B, 3 ms]
+  Pass  HTTP 200
+
+Root Reviewer sees risk flags, facts and fast-lane status
+
+  GET http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645 [200 OK, 2.03 KB, 4 ms]
+  Pass  HTTP 200
+  Pass  Risk fields present
+  Pass  Fast lane is off by default
+
+Root Evidence needs a case that waits for review
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/evidence [409 Conflict, 614 B, 7 ms]
+  Pass  HTTP 409
+
+Root AI review rejects an unexpected body
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/ai-review [400 Bad Request, 613 B, 3 ms]
+  Pass  HTTP 400
+
+Root Login creator (extra checks)
+
+  POST http://127.0.0.1:8765/api/login [200 OK, 643 B, 34 ms]
+  Pass  HTTP 200
+
+Root Session creator (extra checks)
+
+  GET http://127.0.0.1:8765/api/session [200 OK, 660 B, 3 ms]
+  Pass  HTTP 200
+
+Root Seller cancels the request
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/cancel [200 OK, 1.48 KB, 10 ms]
+  Pass  HTTP 200
+  Pass  Cancelled
+
+Root Cancelling twice is refused
+
+  POST http://127.0.0.1:8765/api/v1/destination-change-requests/chg_c1d0f2c914a64b5085a3a96b2e51d645/cancel [409 Conflict, 614 B, 5 ms]
+  Pass  HTTP 409
+
+---------------------------------------------------------------------
+|                         |           executed |             failed |
+--------------------------+--------------------+---------------------
+|              iterations |                  1 |                  0 |
+--------------------------+--------------------+---------------------
+|                requests |                 46 |                  0 |
+--------------------------+--------------------+---------------------
+|            test-scripts |                 46 |                  0 |
+--------------------------+--------------------+---------------------
+|      prerequest-scripts |                 46 |                  0 |
+--------------------------+--------------------+---------------------
+|              assertions |                 62 |                  0 |
+---------------------------------------------------------------------
+| total run duration: 1240 ms                                       |
+---------------------------------------------------------------------
+| total data received: 14.04 KB (approx)                            |
+---------------------------------------------------------------------
+| average response time: 11 ms [min: 3 ms, max: 39 ms, s.d.: 10 ms] |
+---------------------------------------------------------------------

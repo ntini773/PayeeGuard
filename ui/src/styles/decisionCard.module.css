@@ -1,0 +1,228 @@
+.card {
+  position: relative;
+  background: linear-gradient(180deg, var(--night-2) 0%, var(--night) 100%);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-lg);
+  padding: clamp(20px, 3.5vw, 32px);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.tiltHover {
+  transform: rotate(2deg);
+}
+
+.tiltHover:hover {
+  transform: rotate(0deg) scale(1.01);
+  box-shadow: 0 20px 48px rgba(var(--shadow-rgb), 0.6);
+}
+
+/* Inset top highlight (from BRIEF.md § 2) */
+.topHighlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--tint-rgb), 0.25) 50%, transparent 100%);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.caseBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.monoLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.caseId {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text);
+  background: rgba(var(--tint-rgb), 0.06);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(var(--tint-rgb), 0.1);
+}
+
+.partiesRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.sellerName {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.dotDivider {
+  color: var(--line-dark);
+}
+
+.timestamp {
+  color: var(--muted);
+}
+
+.versionBadge {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(var(--info-rgb), 0.15);
+  color: var(--sky);
+}
+
+.outcomeZone {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.outcomeSentence {
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(var(--sunk2-rgb), 0.45);
+  border: 1px solid rgba(var(--line-rgb), 0.6);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  gap: var(--space-3);
+}
+
+.checkLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.checkValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+}
+
+.checkStatusText {
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+.iconTeal {
+  color: var(--sky);
+}
+
+.iconOk {
+  color: var(--ok);
+}
+
+.iconPending {
+  color: var(--sky);
+}
+
+.iconBad {
+  color: var(--bad);
+}
+
+.footerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line-dark);
+  font-size: var(--text-xs);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.footerItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.footerLabel {
+  color: var(--muted);
+}
+
+.statusActive {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.statusHeld {
+  color: var(--sky);
+  font-weight: 600;
+}
+
+.destPreview {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+}
+
+.destMono {
+  color: var(--muted);
+}
+
+.destArrow {
+  color: var(--line-dark);
+}
+
+.destMonoProposed {
+  color: var(--gold-accent);
+  font-weight: 600;
+}
+
+.card { background: white; border-radius: 10px; box-shadow: 0 6px 20px #1f301e04; padding: 28px; }
+.caseBadge { max-width: 100%; min-width: 0; }
+.caseId { overflow-wrap: anywhere; white-space: normal; min-width: 0; }
+.checklist { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.checkRow { flex-direction: column; align-items: flex-start; padding: 17px; gap: 10px; background: var(--workspace-card); min-width: 0; }
+.checkLabel { font-size: var(--text-xs); overflow-wrap: anywhere; }
+.checkValue { font: var(--text-xs) var(--font-sans); color: var(--muted); }
+.outcomeSentence { font-size: 19px; font-weight: 500; letter-spacing: -.02em; }
+@media(max-width:700px) { .card { padding: 20px; } .checklist { grid-template-columns: 1fr; } .outcomeSentence { font-size: 17px; } }

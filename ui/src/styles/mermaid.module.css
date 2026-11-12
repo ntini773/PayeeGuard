@@ -1,0 +1,121 @@
+.wrapper {
+  background: var(--night-2);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+}
+
+.titleBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: rgba(var(--sunk-rgb), 0.5);
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.repoAuthTag {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  color: var(--sky);
+  background: rgba(var(--info-rgb), 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(var(--info-rgb), 0.3);
+}
+
+.svgContainer {
+  padding: var(--space-6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 280px;
+  overflow-x: auto;
+  background: var(--night);
+}
+
+.svgContainer svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.errorBox {
+  padding: var(--space-4);
+  background: rgba(217, 54, 62, 0.1);
+  color: var(--bad-text);
+  font-size: var(--text-xs);
+}
+
+.errorPre, .sourcePre {
+  font-family: var(--font-mono);
+  background: var(--night);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  margin-top: 4px;
+}
+
+.sourceDrawer {
+  padding: 10px 18px;
+  background: rgba(var(--shadow-rgb), 0.4);
+  border-top: 1px solid var(--line-dark);
+}
+
+.sourceToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  padding: 0;
+}
+
+.sourceToggleBtn:hover {
+  color: var(--text);
+}
+
+.copyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid var(--line-dark);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.copyBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+}
+
+.sourceCodeBlock {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--accent-text);
+  background: var(--night);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin-top: 8px;
+  overflow-x: auto;
+  border: 1px solid var(--line-dark);
+}
+
+/* Mermaid draws labels in foreignObject boxes sized at render time. Never clip them,
+   and keep label backgrounds on the page colour instead of black. */
+.svgContainer :global(foreignObject) {
+  overflow: visible;
+}
+
+.svgContainer :global(.labelBkg),
+.svgContainer :global(.edgeLabel) {
+  background-color: var(--night) !important;
+}

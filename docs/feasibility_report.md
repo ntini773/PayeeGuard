@@ -43,8 +43,7 @@ check, initial tests and runbook. The recovery application has not been built.
 
 The environment initially denied writes to the shared Pixi cache. Using a
 writable `/tmp/payout-rescue-pixi-cache` and copies of existing package caches
-allowed a real isolated Pixi installation. The manifest uses the same dependency
-set as Counteroffer so its existing lock can be reused and checked without a
+allowed a real isolated Pixi installation. The manifest and existing compatible lock were checked without a
 network solve. No environment symlink or fake installation was substituted.
 
 ## TASK.md §5 gate results
@@ -140,8 +139,7 @@ the leading diagnosis, pending inspection of the app-linked sender account.
 PayPal's official country table lists India as receive-and-withdraw only, which
 does not permit sending payouts. Inspect the linked account country; if needed,
 create a United States Business sandbox account and a Merchant app linked to it.
-Store new app credentials in ignored `payout_rescue/.env` so Counteroffer remains
-unchanged. Configure login on that app and authenticate the same recipient again
+Store new app credentials in ignored `payout_rescue/.env`. Configure login on that app and authenticate the same recipient again
 before retrying the existing experiment. Do not delete prior experiment evidence.
 If the sender is already US Business, use the debug ID with PayPal support to
 investigate account eligibility rather than assuming the country is wrong.
@@ -154,7 +152,7 @@ https://developer.paypal.com/sandbox-testing/accounts (checked 2026-11-10).
 The user authenticated the same recipient again and received another
 `PAYOUT_NOT_AVAILABLE` refusal, debug ID `f718292bd6c36`. A read-only configuration
 inspection found `payout_rescue/.env` present, with an effective client-ID suffix
-matching the user's latest login URL and differing from Counteroffer's app.
+matching the user's latest login URL.
 No PayPal shell overrides were present in the agent process. This confirms the
 project-specific app is selected locally; it does not establish the country or
 Payouts eligibility of that app's linked Business account. Next inspect that exact

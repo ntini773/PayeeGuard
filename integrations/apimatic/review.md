@@ -38,3 +38,15 @@ authorize replacement. Existing web replacement execution remains disabled.
 Record plugin version, actual referenced documents, findings, accepted patch,
 `pixi run test` result, and unresolved API coverage. No runtime plugin dependency
 or Elastic memory is needed for this development-time review.
+
+
+## Verified live against the PayPal sandbox (2026-11-11). This is our own testing, NOT APIMatic verification.
+| Operation | Result |
+|---|---|
+| POST `/v1/oauth2/token` (authorization code, same redirect URI) | Works. Needed the app's Return URL registered exactly. |
+| GET `/v1/identity/openidconnect/userinfo?schema=openid` | Returns `payer_id`, `sub`, `user_id`, `verified_account` (the string `"true"`, not a boolean). With `profile` and `address` enabled: `name` and `address` (country, region, city, postal code, street) for accounts that have them. **No `account_type`, no `account_creation_date`.** The older `/v1/identity/oauth2/userinfo?schema=paypalv1.1` returned the same fields. |
+| POST `/v1/payments/payouts` | Works for 100 USD sandbox payouts, receiver `PAYPAL_ID`. |
+| GET `/v1/payments/payouts/{id}` | Works. Item `transaction_status` went PENDING then SUCCESS. |
+| POST `/v1/payments/payouts-item/{id}/cancel` | Not exercised in this round. An earlier sandbox attempt returned HTTP 500. Cancellation is not claimed. |
+
+Open for the plugin review: whether any documented scope returns account creation date, and the cancellation behavior.

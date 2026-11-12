@@ -1,0 +1,205 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  transition: transform var(--transition-fast),
+              box-shadow var(--transition-fast),
+              background-color var(--transition-fast),
+              border-color var(--transition-fast),
+              color var(--transition-fast);
+  user-select: none;
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Sizes */
+.sm {
+  height: 36px;
+  padding: 0 16px;
+  font-size: var(--text-xs);
+}
+
+.md {
+  height: 44px;
+  padding: 0 22px;
+  font-size: var(--text-sm);
+}
+
+.lg {
+  height: 52px;
+  padding: 0 28px;
+  font-size: var(--text-base);
+}
+
+/* Primary (Gold fill, navy text) */
+.primary {
+  background: var(--gold);
+  color: var(--gold-text);
+  box-shadow: none;
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--gold-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-gold-glow);
+  text-decoration: none;
+}
+
+/* Secondary (Ghost border) */
+.secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--line-dark);
+}
+
+.secondary:hover:not(:disabled) {
+  background: rgba(var(--tint-rgb), 0.08);
+  border-color: var(--sky);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* Approve (Green fill with check icon) */
+.approve {
+  background: var(--ok);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(31, 169, 113, 0.25);
+}
+
+.approve:hover:not(:disabled) {
+  background: #198e5e;
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(31, 169, 113, 0.4);
+}
+
+/* Reject (Red outline, fills on hover) */
+.reject {
+  background: transparent;
+  color: var(--bad);
+  border-color: var(--bad);
+}
+
+.reject:hover:not(:disabled) {
+  background: var(--bad);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(217, 54, 62, 0.4);
+}
+
+/* Quiet / link */
+.quiet {
+  background: transparent;
+  color: var(--sky);
+  border-color: transparent;
+  padding: 0 var(--space-2);
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+.quiet:hover:not(:disabled) {
+  color: var(--accent-text);
+  text-decoration: underline;
+  transform: none;
+}
+
+/* Disabled state */
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Spinner */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Tooltip container for disabled explanations */
+.tooltipWrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.disabledReason {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--night);
+  color: var(--muted);
+  border: 1px solid var(--line-dark);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+
+.tooltipWrapper:hover .disabledReason,
+.tooltipWrapper:focus-within .disabledReason {
+  opacity: 1;
+}
+
+/* Icon Button */
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  transition: background-color var(--transition-fast);
+  cursor: pointer;
+}
+
+.iconButton:hover:not(:disabled) {
+  background: rgba(var(--tint-rgb), 0.08);
+  color: var(--text);
+  border-color: var(--line-dark);
+}
+
+.iconButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.iconButton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .button {
+    min-height: 44px; /* Minimum touch target on mobile */
+  }
+}

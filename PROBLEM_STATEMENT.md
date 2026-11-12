@@ -2,7 +2,7 @@
 
 Updated: 2026-11-10. User-selected product direction. This replaces the earlier
 payout-recovery positioning; it is not a claim that every capability below has
-already been implemented. See [SUMMARY.md](SUMMARY.md) for delivery status.
+already been implemented. See [SUMMARY.md](docs/archive/SUMMARY.md) for delivery status.
 
 ## The problem
 

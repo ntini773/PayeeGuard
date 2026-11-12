@@ -1,0 +1,27 @@
+.sessionHeader { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; padding: 24px 0 30px; margin-bottom: 30px; border-bottom: 1px solid var(--line-dark); }
+.identity { display: flex; align-items: center; gap: 17px; }
+.avatar { width: 51px; height: 56px; display: grid; place-items: center; border-radius: 11px; color: var(--workspace-icon); background: var(--workspace-soft); border: 1px solid var(--workspace-border); box-shadow: 2px 3px 0 var(--workspace-border); flex-shrink: 0; }
+.workspaceLabel { display: block; font: var(--text-xs) var(--font-mono); color: var(--muted); letter-spacing: .11em; text-transform: uppercase; margin-bottom: 9px; }
+.greetingTitle { font-size: clamp(26px,3vw,35px); font-weight: 500; letter-spacing: -.045em; line-height: 1.15; }
+.identityLine { color: var(--muted); font-size: var(--text-xs); margin-top: 9px; line-height: 1.7; max-width: 580px; }
+.sessionControls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 520px; justify-content: flex-end; }
+.dashboardIntro { margin: 12px 0 25px; display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+.dashboardIntro h2 { font-size: 25px; font-weight: 500; letter-spacing: -.035em; margin-bottom: 8px; }
+.dashboardIntro p { color: var(--muted); max-width: 650px; font-size: 14px; line-height: 1.7; }
+.feedLabel { display: inline-flex; gap: 7px; align-items: center; padding: 7px 10px; border: 1px solid var(--line-dark); border-radius: 5px; font-size: var(--text-xs); color: var(--muted); background: var(--workspace-card); white-space: nowrap; }
+.assistantPanel { border: 1px solid var(--workspace-border); background: var(--workspace-soft); border-radius: 10px; padding: 23px 25px; margin: 0 0 26px; }
+.assistantHeading { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 500; margin-bottom: 15px; color: var(--workspace-strong); }
+.assistantHeading > span { margin-left: auto; font: var(--text-xs) var(--font-mono); color: var(--workspace-muted); font-weight: 400; text-transform: uppercase; }
+.askRow { display: flex; align-items: center; gap: 10px; }
+.askRow input { flex: 1; min-width: 0; height: 45px; padding: 0 14px; border: 1px solid var(--workspace-border); border-radius: 6px; background: white; color: var(--text); font-size: 14px; }
+.askRow input:focus { outline: 2px solid var(--workspace-medium); outline-offset: 1px; }
+.addView { height: 45px; padding: 0 22px; border-radius: 6px; background: var(--workspace-strong); color: white; font-size: var(--text-xs); font-weight: 500; white-space: nowrap; }
+.addView:disabled { opacity: .6; }
+.suggestions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 13px; }
+.suggestions button { font-size: var(--text-xs); color: var(--workspace-muted); padding: 6px 9px; background: #ffffff70; border: 1px solid var(--workspace-border); border-radius: 4px; transition: background .15s, border-color .15s; text-align: left; }
+.suggestions button:hover { background: white; border-color: #9ab47b; }
+.advisoryNote { font-size: var(--text-xs); color: var(--workspace-muted); margin-top: 13px; line-height: 1.6; }
+.askNote { display: block; padding-top: 14px; margin-top: 14px; border-top: 1px solid #d5dfc9; font-size: var(--text-xs); color: var(--workspace-strong); }
+.studioFrame { width: 100%; border: 1px solid var(--line-dark); border-radius: 10px; overflow: hidden; background: white; }
+@media (max-width: 760px) { .sessionHeader { padding-top: 17px; margin-bottom: 22px; gap: 18px; } .sessionControls { justify-content: flex-start; max-width: none; } .identity { align-items: flex-start; gap: 13px; } .avatar { width: 43px; height: 48px; } .identityLine { font-size: var(--text-xs); } .greetingTitle { font-size: 29px; } .assistantPanel { padding: 18px; } .assistantHeading > span { font-size: var(--text-xs); } .askRow { flex-wrap: wrap; } .askRow input { min-width: 180px; } .addView { padding: 0 15px; } }
+.sessionHeader, .dashboardIntro { animation: appEnter 400ms cubic-bezier(.16,1,.3,1) both; }

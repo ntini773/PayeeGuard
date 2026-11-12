@@ -15,12 +15,12 @@ pixi run diagnose-ai
 pixi run probe access
 ```
 
-Python 3.11 and ChatNVIDIA 1.4.3 follow `../setup.md`. The lock initially came
-from Counteroffer's matching dependencies and was validated with `pixi lock --check`.
-Node 22 is retained to match that reusable environment; this milestone has no UI.
+Python 3.11, Node 22 and ChatNVIDIA 1.4.3 are pinned in the project manifest.
+The lock was validated with `pixi lock --check`. See [setup.md](../setup.md).
+The initial feasibility milestone had no UI.
 
-Credentials load from `../counteroffer/.env`, then optional local `.env`, then
-process environment (highest priority). Required variables: `PAYPAL_CLIENT_ID`,
+Credentials load from the project-local `.env`, then the process environment
+(highest priority). Required variables: `PAYPAL_CLIENT_ID`,
 `PAYPAL_CLIENT_SECRET`, and `AI_API_KEY` or `NVIDIA_API_KEY`. No secrets are copied
 or committed. Both service endpoints and the NVIDIA model are fixed to the setup
 values; PayPal is always sandbox, regardless of `PAYMENT_MODE`.

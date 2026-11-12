@@ -1,0 +1,314 @@
+openapi: 3.0.3
+info:
+  title: PayeeGuard API
+  version: 1.0.0
+  description: |
+    Marketplace-side authorization for changes to a seller's PayPal payout destination.
+    Authentication is not authorization to redirect someone else's earnings.
+
+    The backend decides. AI output is advisory only and never approves, verifies, activates or moves money.
+    Browser sessions use an HttpOnly cookie. Every POST also needs the `X-CSRF-Token` from `GET /api/session`.
+    Reviewer-only fields (AI assessment, risk flags, PayPal facts, fast-lane status) are absent for sellers and agents.
+    This is a prototype. Marketplace signals are a simulated feed. Evidence entry from the browser is a prototype stand-in.
+servers:
+  - url: http://127.0.0.1:8765
+    description: Local prototype (sandbox or demo mode)
+security:
+  - sessionCookie: []
+tags:
+  - name: Session
+  - name: Seller
+  - name: Operator
+  - name: Payouts
+paths:
+  /api/session:
+    get:
+      tags: [Session]
+      summary: Who is signed in, the CSRF token and the backend mode
+      security: []
+      responses:
+        '200': {description: Session, content: {application/json: {schema: {$ref: '#/components/schemas/Session'}}}}
+  /api/login:
+    post:
+      tags: [Session]
+      summary: Sign in with a marketplace account
+      security: []
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [username, password], properties: {username: {type: string}, password: {type: string, format: password}}}}}
+      responses:
+        '200': {description: 'Signed in. Sets the session cookie.'}
+        '403': {description: 'Invalid credentials, or too many attempts.'}
+  /api/logout:
+    post:
+      tags: [Session]
+      summary: End the session
+      parameters: [{$ref: '#/components/parameters/Csrf'}]
+      requestBody: {$ref: '#/components/requestBodies/EmptyObject'}
+      responses:
+        '200': {description: 'Signed out'}
+  /api/v1/destination-change-requests:
+    get:
+      tags: [Seller]
+      summary: The signed-in seller's own requests, newest first
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+        - {name: before, in: query, schema: {type: string}}
+      responses:
+        '200': {description: Requests, content: {application/json: {schema: {type: object, properties: {cases: {type: array, items: {$ref: '#/components/schemas/Case'}}}}}}}
+    post:
+      tags: [Seller]
+      summary: Ask to change the payout account
+      description: Idempotent by `Idempotency-Key`. One open request per seller. The proposed account is never usable until the backend activates it.
+      parameters: [{$ref: '#/components/parameters/Csrf'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [reason_text], additionalProperties: false, properties: {reason_text: {type: string, maxLength: 4000}, reason_category: {type: string, maxLength: 80}}}}}
+      responses:
+        '201': {description: Created, content: {application/json: {schema: {$ref: '#/components/schemas/Case'}}}}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '429': {description: 'Rate limited'}
+  /api/v1/destination-change-requests/{caseId}:
+    get:
+      tags: [Seller, Operator]
+      summary: One request. Reviewers get extra fields.
+      parameters: [{$ref: '#/components/parameters/CaseId'}]
+      responses:
+        '200': {description: The request, content: {application/json: {schema: {$ref: '#/components/schemas/Case'}}}}
+        '404': {description: 'Not found, or outside the caller''s scope'}
+  /api/v1/destination-change-requests/{caseId}/summary:
+    get:
+      tags: [Seller, Operator]
+      summary: Next steps. Reviewers also get claims, evidence and policy findings.
+      parameters: [{$ref: '#/components/parameters/CaseId'}]
+      responses: {'200': {description: 'Summary'}}
+  /api/v1/destination-change-requests/{caseId}/events:
+    get:
+      tags: [Seller, Operator]
+      summary: Append-only audit trail
+      parameters: [{$ref: '#/components/parameters/CaseId'}]
+      responses: {'200': {description: 'Events'}}
+  /api/v1/destination-change-requests/{caseId}/messages:
+    post:
+      tags: [Seller]
+      summary: Add a note. Treated as an untrusted claim.
+      parameters: [{$ref: '#/components/parameters/CaseId'}, {$ref: '#/components/parameters/Csrf'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [message], additionalProperties: false, properties: {message: {type: string, maxLength: 4000}}}}}
+      responses: {'200': {description: Updated request, content: {application/json: {schema: {$ref: '#/components/schemas/Case'}}}}}
+  /api/v1/destination-change-requests/{caseId}/auth/{purpose}:
+    post:
+      tags: [Seller]
+      summary: Start a PayPal login to verify the NEW or the OLD account
+      description: Returns the PayPal URL. PayPal returns to `/api/v1/paypal/callback`, which goes straight to the backend, never through the AI.
+      parameters: [{$ref: '#/components/parameters/CaseId'}, {name: purpose, in: path, required: true, schema: {type: string, enum: [NEW, OLD]}}, {$ref: '#/components/parameters/Csrf'}]
+      requestBody: {$ref: '#/components/requestBodies/EmptyObject'}
+      responses:
+        '200': {description: Authorization URL, content: {application/json: {schema: {type: object, properties: {authorization_url: {type: string, format: uri}, case_id: {type: string}, purpose: {type: string}}}}}}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/v1/destination-change-requests/{caseId}/recovery:
+    post:
+      tags: [Seller]
+      summary: Ask for a recovery review when the old account cannot be verified
+      parameters: [{$ref: '#/components/parameters/CaseId'}, {$ref: '#/components/parameters/Csrf'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [reason_text], additionalProperties: false, properties: {reason_text: {type: string}}}}}
+      responses: {'200': {description: 'Updated request'}}
+  /api/v1/destination-change-requests/{caseId}/cancel:
+    post:
+      tags: [Seller]
+      summary: Cancel an open or waiting request
+      parameters: [{$ref: '#/components/parameters/CaseId'}, {$ref: '#/components/parameters/Csrf'}]
+      requestBody: {$ref: '#/components/requestBodies/EmptyObject'}
+      responses:
+        '200': {description: 'Cancelled'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/v1/destination-change-requests/{caseId}/review:
+    post:
+      tags: [Operator]
+      summary: Approve or reject. Reviewers only.
+      description: |
+        APPROVE is refused with 409 `POLICY_REVIEW_REQUIRED` until marketplace evidence confirms the request,
+        and with 409 `POLICY_BLOCKED` while two or more risk flags are active. REJECT is always allowed.
+      parameters: [{$ref: '#/components/parameters/CaseId'}, {$ref: '#/components/parameters/Csrf'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [decision, reason, expected_version], additionalProperties: false, properties: {decision: {type: string, enum: [APPROVE, REJECT]}, reason: {type: string, maxLength: 1000}, expected_version: {type: integer}}}}}
+      responses:
+        '200': {description: 'Updated request'}
+        '403': {description: 'Not a reviewer'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/v1/destination-change-requests/{caseId}/evidence:
+    post:
+      tags: [Operator]
+      summary: Record what the marketplace's records show (prototype stand-in, browser reviewers only)
+      parameters: [{$ref: '#/components/parameters/CaseId'}, {$ref: '#/components/parameters/Csrf'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [kind, reference, reason, accepted, expected_version], additionalProperties: false, properties: {kind: {type: string, enum: [SELLER_ENTITLEMENT, ACCOUNT_RECOVERY]}, reference: {type: string}, reason: {type: string}, accepted: {type: boolean}, expected_version: {type: integer}}}}}
+      responses:
+        '200': {description: 'Updated request'}
+        '403': {description: 'Not a browser reviewer'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/v1/destination-change-requests/{caseId}/ai-review:
+    post:
+      tags: [Operator]
+      summary: Start a read-only AI review
+      description: The AI reads the case, the seller's messages, missing evidence, recent payouts (with a read-only PayPal lookup) and the risk audit. It writes one advisory assessment and changes nothing.
+      parameters: [{$ref: '#/components/parameters/CaseId'}, {$ref: '#/components/parameters/Csrf'}]
+      requestBody: {$ref: '#/components/requestBodies/EmptyObject'}
+      responses:
+        '200': {description: Run started, content: {application/json: {schema: {type: object, properties: {run_id: {type: string}}}}}}
+        '403': {description: 'Not a browser reviewer'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /api/v1/destination-change-requests/{caseId}/ai-review/{runId}:
+    get:
+      tags: [Operator]
+      summary: Steps of a review so far
+      parameters: [{$ref: '#/components/parameters/CaseId'}, {name: runId, in: path, required: true, schema: {type: string}}]
+      responses:
+        '200': {description: Status and events, content: {application/json: {schema: {type: object, properties: {run_id: {type: string}, status: {type: string, enum: [running, done, failed]}, events: {type: array, items: {type: object, properties: {seq: {type: integer}, kind: {type: string}, label: {type: string}, detail: {type: string}}}}}}}}}
+  /api/v1/cases:
+    get:
+      tags: [Operator]
+      summary: Tenant queue for reviewers, newest first
+      parameters:
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 50}}
+        - {name: before, in: query, schema: {type: string}, description: Case ID cursor from next_cursor}
+      responses:
+        '200': {description: Queue, content: {application/json: {schema: {type: object, properties: {cases: {type: array, items: {$ref: '#/components/schemas/Case'}}, next_cursor: {type: string, nullable: true}}}}}}
+  /api/v1/paypal/callback:
+    get:
+      tags: [Seller]
+      summary: PayPal returns here after a login. Server-side exchange only.
+      description: Browsers (Accept text/html) are redirected to `/seller`. API clients get JSON. State is session-bound, one-use and expiring.
+      parameters: [{name: code, in: query, required: true, schema: {type: string}}, {name: state, in: query, required: true, schema: {type: string}}]
+      responses:
+        '200': {description: 'Verification recorded'}
+        '303': {description: 'Redirect to the seller page'}
+        '400': {description: 'PAYPAL_CALLBACK_INVALID'}
+  /api/v1/seller-guide:
+    post:
+      tags: [Seller]
+      summary: Help chat for sellers. No tools, no case data, no authority.
+      parameters: [{$ref: '#/components/parameters/Csrf'}]
+      requestBody:
+        required: true
+        content: {application/json: {schema: {type: object, required: [messages], additionalProperties: false, properties: {messages: {type: array, minItems: 1, maxItems: 8, items: {type: object, required: [role, text], additionalProperties: false, properties: {role: {type: string, enum: [user, assistant]}, text: {type: string, maxLength: 500}}}}}}}}
+      responses:
+        '200': {description: Reply, content: {application/json: {schema: {type: object, properties: {reply: {type: string}, source: {type: string, enum: [ai, scripted]}}}}}}
+        '400': {description: 'Bad history'}
+  /api/v1/marketplace-payouts:
+    get:
+      tags: [Payouts]
+      summary: Stored earnings and their payout receipts
+      responses:
+        '200': {description: Earnings, content: {application/json: {schema: {type: object, properties: {earnings: {type: array, items: {$ref: '#/components/schemas/Earning'}}}}}}}
+  /api/v1/marketplace-payouts/{earningId}/execute:
+    post:
+      tags: [Payouts]
+      summary: Pay a stored earning through the payout gate. Reviewers only.
+      description: The gate pays only the account the backend has on file. The request cannot choose an amount or an account. Replays return the same operation.
+      parameters: [{$ref: '#/components/parameters/EarningId'}, {$ref: '#/components/parameters/Csrf'}]
+      requestBody: {$ref: '#/components/requestBodies/EmptyObject'}
+      responses:
+        '200': {description: Operation, content: {application/json: {schema: {type: object, properties: {operation: {$ref: '#/components/schemas/Operation'}}}}}}
+        '409': {description: 'PAYOUT_HELD'}
+  /api/v1/marketplace-payouts/{earningId}/reconcile:
+    post:
+      tags: [Payouts]
+      summary: Read the payout's state from PayPal. Never creates or retries a payout.
+      parameters: [{$ref: '#/components/parameters/EarningId'}, {$ref: '#/components/parameters/Csrf'}]
+      requestBody: {$ref: '#/components/requestBodies/EmptyObject'}
+      responses:
+        '200': {description: Operation, content: {application/json: {schema: {type: object, properties: {operation: {$ref: '#/components/schemas/Operation'}}}}}}
+components:
+  securitySchemes:
+    sessionCookie: {type: apiKey, in: cookie, name: rescue_session}
+    marketplaceKey:
+      type: http
+      scheme: bearer
+      description: "Marketplace backend key (pgk_...). Only for an external-channel grant: create, read and cancel its own seller's requests. Never approve, review or payouts. No CSRF token is needed. Create it with destination_admin apikey."
+  parameters:
+    CaseId: {name: caseId, in: path, required: true, schema: {type: string, pattern: '^chg_[a-f0-9]{32}$'}}
+    EarningId: {name: earningId, in: path, required: true, schema: {type: string, pattern: '^[A-Za-z0-9_-]{1,100}$'}}
+    Csrf: {name: X-CSRF-Token, in: header, required: true, schema: {type: string}, description: From GET /api/session}
+    IdempotencyKey: {name: Idempotency-Key, in: header, required: true, schema: {type: string, pattern: '^[A-Za-z0-9_.:-]{1,128}$'}}
+  requestBodies:
+    EmptyObject:
+      required: true
+      content: {application/json: {schema: {type: object, additionalProperties: false, maxProperties: 0}}}
+  responses:
+    Conflict:
+      description: State, version or idempotency conflict. Reload instead of retrying an old action.
+      content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}
+  schemas:
+    Error:
+      type: object
+      properties:
+        error: {type: object, properties: {code: {type: string, example: CASE_VERSION_CONFLICT}}}
+        correlation_id: {type: string}
+    Session:
+      type: object
+      properties:
+        user: {type: object, nullable: true, properties: {id: {type: string}, role: {type: string}}}
+        csrf: {type: string, nullable: true}
+        mode: {type: string, enum: [demo, sandbox]}
+        ai_mode: {type: string}
+    Case:
+      type: object
+      properties:
+        case_id: {type: string}
+        tenant_id: {type: string}
+        seller_id: {type: string}
+        state: {type: string, enum: [CHANGE_REQUESTED, PENDING_NEW_ACCOUNT_AUTH, PENDING_OLD_ACCOUNT_AUTH, PENDING_REVIEW, APPROVED_COOLING_OFF, ACTIVE_NEW_DESTINATION, ACTIVE, REJECTED, EXPIRED]}
+        version: {type: integer}
+        destinations:
+          type: object
+          description: Masked IDs exactly as stored. The UI must not re-mask.
+          properties: {active: {type: object, properties: {masked_payer_id: {type: string}}}, proposed: {type: object, properties: {masked_payer_id: {type: string, nullable: true}}}}
+        authentication: {type: object}
+        marketplace_review: {type: object}
+        cooling_off: {type: object, properties: {status: {type: string}, ends_at: {type: number, nullable: true}}}
+        policy_decision: {type: string}
+        payout_control: {type: object, properties: {proposed_destination_usable: {type: boolean}, hold_reason: {type: string, nullable: true}}}
+        ai_assessment: {type: object, nullable: true, description: Reviewers only. Advisory. stale=true means the case changed after it ran.}
+        risk_findings: {type: array, description: Reviewers only., items: {$ref: '#/components/schemas/RiskFinding'}}
+        risk_blocks_approval: {type: boolean, description: Reviewers only. Two or more flags.}
+        risk_signals_source: {type: string, nullable: true, enum: [SIMULATED_FEED, MARKETPLACE_FEED], description: Reviewers only.}
+        paypal_facts: {type: object, description: 'Reviewers only. Derived facts (name_match, country_match, ...). No raw personal data.'}
+        fast_lane: {$ref: '#/components/schemas/FastLane'}
+    RiskFinding:
+      type: object
+      properties:
+        code: {type: string, enum: [NEW_DEVICE_RECENT, PASSWORD_RESET_RECENT, COUNTRY_CHANGE_RECENT, DESTINATION_CHANGE_RECENT, PAYPAL_ACCOUNT_YOUNG, PAYPAL_NAME_MISMATCH, PAYPAL_COUNTRY_MISMATCH]}
+        level: {type: string, enum: [ELEVATED]}
+        detail: {type: string}
+    FastLane:
+      type: object
+      description: Reviewers only. Whether rules may approve a clean case with no operator. Off by default. The safety wait still applies.
+      properties:
+        enabled: {type: boolean}
+        eligible: {type: boolean}
+        sampled: {type: boolean}
+        missing: {type: array, items: {type: string}}
+    Earning:
+      type: object
+      properties:
+        earning_id: {type: string}
+        amount: {type: string, example: '100.00'}
+        currency: {type: string, example: USD}
+        received_at: {type: number, description: Epoch seconds the marketplace recorded the sale.}
+        payout: {$ref: '#/components/schemas/Operation'}
+    Operation:
+      type: object
+      nullable: true
+      properties:
+        status: {type: string}
+        provider_status: {type: string}
+        amount: {type: string}
+        currency: {type: string}
+        needs_attention: {type: boolean}
+        simulation: {type: boolean}

@@ -4,13 +4,21 @@ UI work comes after the integrations. Current target: ClaimPal on Render, real
 PayPal **sandbox** and real NVIDIA. No live PayPal environment or real replacement
 endpoint is enabled. AG Studio remains for the later UI phase.
 
-## Status (2026-11-10)
+## Status (2026-11-11)
 
-| Integration | Prepared | Still required |
-|---|---|---|
-| Postman | CLI 1.87.0 confirmed; local v2.1 collection and disposable fixture runner | Execute from a terminal permitting sockets |
-| APIMatic | Focused adapter-review brief | Installation and actual plugin-backed review |
-| Render | Blueprint, persistent runtime directory, fixed HTTPS origin, Secure cookies, hosted callback tests | Account connection, repository push, configured secrets, deployment and hosted smoke test |
+| Integration | Status | Evidence | Still required |
+|---|---|---|---|
+| PayPal (Log in with PayPal, Payouts) | **Live, sandbox** | Real two-account logins, 100 USD payouts reconciled to SUCCESS, see `docs/SANDBOX_RESULTS.md` | Nothing for the demo |
+| NVIDIA | **Live** | Seller help chat and operator AI Review on `nvidia/nemotron-3.5-bolt-e4b`, `docs/EVALUATION.md` | None |
+| AG Grid and AG Studio | **In the app** | AG Grid Community: operator queue and case audit trail. **AG Studio** (45-day trial, `ag-studio-react` 3.1.0): operator dashboard (KPI, column chart, donut, grid over live cases) and seller revenue dashboard (live earnings), themed per side, view-only | Custom "Earnings kept safe" widget, and the Studio Agent Framework wired to NVIDIA through our backend (`/api/v1/dashboard-llm`). Trial key lives in `ui/.env.local` (not committed) and expires 2026-12-26; production use needs a paid licence |
+| Postman | **Run** | `docs/postman-run-2026-11-11.txt`: 46 requests, 62 assertions, 0 failed (real Postman CLI, real handlers, simulated PayPal, disposable DB) | None |
+| OpenAPI / APIMatic | **Spec ready, import not run** | `docs/openapi.yaml`: 22 operations, local structural checks only (not an official validator) | Import into APIMatic with your account to generate SDKs and docs |
+| APIMatic PayPal context plugin | **Installed (v0.4.1) and used for one review** | `docs/APIMATIC_USE.md`: review of `rescue/paypal.py` against the plugin's Python skills; one fix (app token expiry) with tests | Not an SDK integration; no claim form submitted |
+| Render | **Skipped by decision** | `render.yaml` blueprint exists, nothing deployed | A paid service with a persistent disk, your account, secrets |
+
+Hackathon rules were checked by hand on 2026-11-11 (`docs/HACKATHON_RULES_SUMMARY.md`). The APIMatic role comes from the project's `docs/archive/tools.md`
+and PayPal's blog: a development-time context plugin that gives a coding agent PayPal API context. It is not a runtime component.
+Confirm the exact sponsor requirements on the live Devpost page.
 
 This environment cannot resolve npm/Postman download hosts or bind local sockets.
 Those failures are not successful sponsor verification. No Render service has

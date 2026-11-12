@@ -3,3 +3,14 @@
 __pycache__/
 *.pyc
 .runtime/
+.env.local
+ui/.env.local
+node_modules/
+ui/dist/
+ui/*.tsbuildinfo
+*.webm
+
+# Other coding assistants and local tooling
+.opencode/
+.agents/
+skills-lock.json

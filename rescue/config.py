@@ -5,9 +5,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def settings():
-    # Read credentials in place; never copy the source .env into this repository.
+    # Read only this project’s private configuration; shell values take precedence.
     values = {}
-    for path in (ROOT.parent / 'counteroffer' / '.env', ROOT / '.env'):
+    for path in (ROOT / '.env',):
         if path.exists():
             for line in path.read_text().splitlines():
                 if line.strip() and not line.lstrip().startswith('#') and '=' in line:

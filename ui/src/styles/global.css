@@ -1,0 +1,212 @@
+@import './variables.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--night);
+  color: var(--text);
+  scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--night);
+  min-height: 100vh;
+  max-width: 100%;
+  overflow-x: clip;
+  position: relative;
+}
+
+#root {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+/* Only the page crossfades; navigation remains sharp and stationary. */
+#main-content { view-transition-name: route-content; }
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-group(route-content) { animation-duration: 220ms; }
+::view-transition-old(route-content) { animation: route-out 180ms ease-out both; }
+::view-transition-new(route-content) { animation: route-in 220ms ease-out both; }
+@keyframes route-out { to { opacity: 0; } }
+@keyframes route-in { from { opacity: 0; } to { opacity: 1; } }
+.navigation-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 2px;
+  z-index: 1000;
+  background: var(--gold);
+  transform-origin: left;
+  animation: loading-line 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+html.reduced-motion::view-transition-group(*),
+html.reduced-motion::view-transition-old(*),
+html.reduced-motion::view-transition-new(*) { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
+.route-loading {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.route-loading-line {
+  width: 120px;
+  height: 2px;
+  background: var(--line-dark);
+  position: relative;
+  overflow: hidden;
+}
+.route-loading-line::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gold);
+  transform-origin: left;
+  animation: loading-line 1.4s ease-in-out infinite;
+}
+.route-loading-public {
+  min-height: calc(100svh - 80px);
+  background: #f8f8f2;
+  color: #627056;
+}
+.route-loading-public .route-loading-line {
+  background: #dcded4;
+}
+.route-loading-public .route-loading-line::after {
+  background: #3c543b;
+}
+@keyframes loading-line {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Accessible visible focus ring (BRIEF.md § 4: 3px outline with 3px offset) */
+:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+a {
+  color: var(--sky);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  border: none;
+  background: transparent;
+  color: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+code, kbd, samp, pre {
+  font-family: var(--font-mono);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--night);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sky);
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 16px;
+  background: var(--gold);
+  color: var(--gold-text);
+  padding: 8px 16px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  z-index: 9999;
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+/* The sticky action bar sits at the bottom. Keep scrolled-to content clear of it and of the header. */
+html { scroll-padding-top: 90px; scroll-padding-bottom: 240px; }
+
+/* Keep text fields and controls in the shared application type system. */
+input, textarea, select { font: inherit; accent-color: var(--gold); }
+input::placeholder, textarea::placeholder { color: var(--muted-dark); opacity: .8; }
+h1 { letter-spacing: -.045em; line-height: 1.12; }
+h2, h3 { letter-spacing: -.025em; line-height: 1.25; }
+::selection { background: var(--workspace-ring); color: var(--text); }
+
+@keyframes appEnter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }

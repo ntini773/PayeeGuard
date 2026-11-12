@@ -1,5 +1,6 @@
 """Local marketplace prototype persistence. All authentication is server-side."""
 import hashlib
+import re
 import hmac
 import json
 import secrets
@@ -25,6 +26,7 @@ class Store:
             CREATE TABLE IF NOT EXISTS metadata(key TEXT PRIMARY KEY, value TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY, role TEXT NOT NULL, salt TEXT NOT NULL, password TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS sessions(token TEXT PRIMARY KEY, user_id TEXT NOT NULL, csrf TEXT NOT NULL, expires REAL NOT NULL);
+            CREATE TABLE IF NOT EXISTS api_keys(digest TEXT PRIMARY KEY, user_id TEXT NOT NULL, label TEXT NOT NULL, created REAL NOT NULL, revoked INTEGER NOT NULL DEFAULT 0);
             CREATE TABLE IF NOT EXISTS payees(id TEXT PRIMARY KEY, data TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS cases(id TEXT PRIMARY KEY, owner TEXT NOT NULL, data TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS oauth(state TEXT PRIMARY KEY, session TEXT NOT NULL, case_id TEXT NOT NULL, expires REAL NOT NULL);
@@ -92,11 +94,36 @@ class Store:
             db.execute('INSERT INTO sessions VALUES (?,?,?,?)', (self.digest(token), user, csrf, time.time() + 3600 * 8))
         return token
 
+    API_KEY_PREFIX = 'pgk_'
+
+    def create_api_key(self, user, label):
+        """A marketplace backend key. Only its SHA-256 digest is stored, so the key cannot be read back. Shown once."""
+        if not re.fullmatch(r'[A-Za-z0-9_.-]{1,64}', label or ''):
+            raise ValueError('bad label')
+        key = self.API_KEY_PREFIX + secrets.token_urlsafe(32)
+        with self.connect() as db:
+            if not db.execute('SELECT 1 FROM users WHERE id=?', (user,)).fetchone():
+                raise ValueError('unknown user')
+            db.execute('INSERT INTO api_keys VALUES (?,?,?,?,0)', (self.digest(key), user, label, time.time()))
+        return key
+
+    def revoke_api_key(self, user, label):
+        with self.connect() as db:
+            return db.execute('UPDATE api_keys SET revoked=1 WHERE user_id=? AND label=?', (user, label)).rowcount
+
     @staticmethod
     def digest(token):
         return hashlib.sha256(token.encode()).hexdigest()
 
     def session(self, token):
+        if isinstance(token, str) and token.startswith(self.API_KEY_PREFIX):
+            with self.connect() as db:
+                row = db.execute('SELECT k.user_id, u.role FROM api_keys k JOIN users u ON u.id=k.user_id WHERE k.digest=? AND k.revoked=0',
+                                 (self.digest(token),)).fetchone()
+            if not row:
+                raise Denied('Sign in to continue')
+            # No browser session, so no CSRF token. The API key itself is the credential.
+            return {'user_id': row['user_id'], 'role': row['role'], 'token': self.digest(token), 'csrf': None, 'api_key': True}
         with self.connect() as db:
             row = db.execute('SELECT s.*, u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE token=? AND expires>?',
                              (self.digest(token), time.time())).fetchone()

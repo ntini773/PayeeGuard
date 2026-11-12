@@ -1,0 +1,7 @@
+"""Public destination errors contain fixed messages, never provider exception text."""
+
+
+class DestinationError(ValueError):
+    def __init__(self, code, status=400):
+        self.code, self.status = code, status
+        super().__init__(code)

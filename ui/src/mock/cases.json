@@ -1,0 +1,290 @@
+[
+  {
+    "case_id": "chg_demo_0001",
+    "tenant_id": "marketplace_demo",
+    "seller_id": "seller_alice",
+    "state": "PENDING_REVIEW",
+    "created_at": "2026-11-08T09:00:00Z",
+    "updated_at": "2026-11-10T11:30:00Z",
+    "reason": {
+      "seller_text": "I opened a new PayPal account for my shop after my old email was compromised.",
+      "category_claimed_by_seller": "NEW_ACCOUNT"
+    },
+    "destinations": {
+      "active": { "masked_payer_id": "PAYER-***-7A21" },
+      "proposed": { "masked_payer_id": "PAYER-***-9F44" }
+    },
+    "authentication": {
+      "new_account": { "status": "VALIDATED", "verified_by": "PAYPAL_CALLBACK", "validated_at": "2026-11-09T14:02:00Z" },
+      "old_account": { "status": "MATCHED", "verified_by": "PAYPAL_CALLBACK", "validated_at": "2026-11-10T10:15:00Z" }
+    },
+    "marketplace_review": { "status": "PENDING", "decision": null },
+    "cooling_off": { "status": "NOT_STARTED", "ends_at": null },
+    "payout_control": { "proposed_destination_usable": false, "hold_reason": "MARKETPLACE_REVIEW_REQUIRED" },
+    "ai_assessment": {
+      "status": "AVAILABLE",
+      "reason_category": "NEW_ACCOUNT",
+      "risk_signals": [],
+      "missing_information": [],
+      "recommendation": "CONTINUE_REQUIRED_VERIFICATION",
+      "advisory_only": true
+    },
+    "policy": {
+      "decision": "REQUIRE_MARKETPLACE_REVIEW",
+      "reason_codes": ["ALL_AUTH_COMPLETE", "MARKETPLACE_REVIEW_REQUIRED"],
+      "may_activate_proposed_destination": false
+    },
+    "audit_trail": [
+      { "event": "DESTINATION_CHANGE_REQUESTED", "actor": "seller_alice", "timestamp": "2026-11-08T09:00:00Z", "previous_state": null, "new_state": "CHANGE_REQUESTED", "reason": "Seller initiated change", "simulated": false },
+      { "event": "NEW_ACCOUNT_AUTH_VALIDATED", "actor": "system", "timestamp": "2026-11-09T14:02:00Z", "previous_state": "PENDING_NEW_ACCOUNT_AUTH", "new_state": "PENDING_OLD_ACCOUNT_AUTH", "reason": "PayPal callback validated proposed account", "simulated": false },
+      { "event": "OLD_ACCOUNT_AUTH_MATCHED", "actor": "system", "timestamp": "2026-11-10T10:15:00Z", "previous_state": "PENDING_OLD_ACCOUNT_AUTH", "new_state": "PENDING_REVIEW", "reason": "Old account payer ID matched stored active", "simulated": false },
+      { "event": "MARKETPLACE_REVIEW_REQUIRED", "actor": "policy_engine", "timestamp": "2026-11-10T10:15:01Z", "previous_state": "PENDING_REVIEW", "new_state": "PENDING_REVIEW", "reason": "Policy requires authorized operator review", "simulated": false }
+    ],
+    "version": 4
+  },
+  {
+    "case_id": "chg_demo_0002",
+    "tenant_id": "marketplace_demo",
+    "seller_id": "seller_bob",
+    "state": "APPROVED_COOLING_OFF",
+    "created_at": "2026-11-06T08:00:00Z",
+    "updated_at": "2026-11-10T08:00:00Z",
+    "reason": {
+      "seller_text": "Switching to a business PayPal for tax purposes.",
+      "category_claimed_by_seller": "NEW_ACCOUNT"
+    },
+    "destinations": {
+      "active": { "masked_payer_id": "PAYER-***-3B88" },
+      "proposed": { "masked_payer_id": "PAYER-***-5D12" }
+    },
+    "authentication": {
+      "new_account": { "status": "VALIDATED", "verified_by": "PAYPAL_CALLBACK", "validated_at": "2026-11-07T10:00:00Z" },
+      "old_account": { "status": "MATCHED", "verified_by": "PAYPAL_CALLBACK", "validated_at": "2026-11-08T09:00:00Z" }
+    },
+    "marketplace_review": { "status": "APPROVED", "decision": "APPROVE" },
+    "cooling_off": { "status": "ACTIVE", "ends_at": "2026-11-13T08:00:00Z" },
+    "payout_control": { "proposed_destination_usable": false, "hold_reason": "COOLING_OFF_ACTIVE" },
+    "ai_assessment": {
+      "status": "AVAILABLE",
+      "reason_category": "NEW_ACCOUNT",
+      "risk_signals": [],
+      "missing_information": [],
+      "recommendation": "CONTINUE_REQUIRED_VERIFICATION",
+      "advisory_only": true
+    },
+    "policy": {
+      "decision": "APPROVE_COOLING_OFF",
+      "reason_codes": ["OPERATOR_APPROVED", "COOLING_OFF_STARTED"],
+      "may_activate_proposed_destination": false
+    },
+    "audit_trail": [
+      { "event": "DESTINATION_CHANGE_REQUESTED", "actor": "seller_bob", "timestamp": "2026-11-06T08:00:00Z", "previous_state": null, "new_state": "CHANGE_REQUESTED", "reason": "Seller initiated change", "simulated": false },
+      { "event": "NEW_ACCOUNT_AUTH_VALIDATED", "actor": "system", "timestamp": "2026-11-07T10:00:00Z", "previous_state": "PENDING_NEW_ACCOUNT_AUTH", "new_state": "PENDING_OLD_ACCOUNT_AUTH", "reason": null, "simulated": false },
+      { "event": "OLD_ACCOUNT_AUTH_MATCHED", "actor": "system", "timestamp": "2026-11-08T09:00:00Z", "previous_state": "PENDING_OLD_ACCOUNT_AUTH", "new_state": "PENDING_REVIEW", "reason": null, "simulated": false },
+      { "event": "DESTINATION_CHANGE_APPROVED", "actor": "operator_maria", "timestamp": "2026-11-10T08:00:00Z", "previous_state": "PENDING_REVIEW", "new_state": "APPROVED_COOLING_OFF", "reason": "Both accounts authenticated. Business transition verified.", "simulated": false }
+    ],
+    "version": 5
+  },
+  {
+    "case_id": "chg_demo_0003",
+    "tenant_id": "marketplace_demo",
+    "seller_id": "seller_carol",
+    "state": "REJECTED",
+    "created_at": "2026-11-05T12:00:00Z",
+    "updated_at": "2026-11-09T16:00:00Z",
+    "reason": {
+      "seller_text": "A friend is managing my sales now, please route payments to their account.",
+      "category_claimed_by_seller": "NEW_ACCOUNT"
+    },
+    "destinations": {
+      "active": { "masked_payer_id": "PAYER-***-1C99" },
+      "proposed": { "masked_payer_id": "PAYER-***-8E37" }
+    },
+    "authentication": {
+      "new_account": { "status": "VALIDATED", "verified_by": "PAYPAL_CALLBACK", "validated_at": "2026-11-06T11:00:00Z" },
+      "old_account": { "status": "NOT_MATCHED", "verified_by": "PAYPAL_CALLBACK", "validated_at": "2026-11-07T14:00:00Z" }
+    },
+    "marketplace_review": { "status": "REJECTED", "decision": "REJECT" },
+    "cooling_off": { "status": "NOT_STARTED", "ends_at": null },
+    "payout_control": { "proposed_destination_usable": false, "hold_reason": "DESTINATION_CHANGE_REJECTED" },
+    "ai_assessment": {
+      "status": "AVAILABLE",
+      "reason_category": "NEW_ACCOUNT",
+      "risk_signals": ["THIRD_PARTY_DESTINATION", "OLD_ACCOUNT_MISMATCH"],
+      "missing_information": [],
+      "recommendation": "ESCALATE_FOR_REVIEW",
+      "advisory_only": true
+    },
+    "policy": {
+      "decision": "REJECT",
+      "reason_codes": ["OLD_ACCOUNT_AUTH_NOT_MATCHED", "THIRD_PARTY_DESTINATION"],
+      "may_activate_proposed_destination": false
+    },
+    "audit_trail": [
+      { "event": "DESTINATION_CHANGE_REQUESTED", "actor": "seller_carol", "timestamp": "2026-11-05T12:00:00Z", "previous_state": null, "new_state": "CHANGE_REQUESTED", "reason": "Seller initiated change", "simulated": false },
+      { "event": "NEW_ACCOUNT_AUTH_VALIDATED", "actor": "system", "timestamp": "2026-11-06T11:00:00Z", "previous_state": "PENDING_NEW_ACCOUNT_AUTH", "new_state": "PENDING_OLD_ACCOUNT_AUTH", "reason": null, "simulated": false },
+      { "event": "OLD_ACCOUNT_AUTH_NOT_MATCHED", "actor": "system", "timestamp": "2026-11-07T14:00:00Z", "previous_state": "PENDING_OLD_ACCOUNT_AUTH", "new_state": "PENDING_REVIEW", "reason": "Old account payer ID did not match stored active", "simulated": false },
+      { "event": "DESTINATION_CHANGE_REJECTED", "actor": "operator_maria", "timestamp": "2026-11-09T16:00:00Z", "previous_state": "PENDING_REVIEW", "new_state": "REJECTED", "reason": "Third-party destination; old account mismatch confirmed.", "simulated": false }
+    ],
+    "version": 5
+  },
+  {
+    "case_id": "chg_demo_0004",
+    "tenant_id": "marketplace_demo",
+    "seller_id": "seller_dave",
+    "state": "PENDING_OLD_ACCOUNT_AUTH",
+    "created_at": "2026-11-10T06:00:00Z",
+    "updated_at": "2026-11-10T07:30:00Z",
+    "reason": {
+      "seller_text": "Changed my email and created a new PayPal under the new address.",
+      "category_claimed_by_seller": "NEW_ACCOUNT"
+    },
+    "destinations": {
+      "active": { "masked_payer_id": "PAYER-***-2D55" },
+      "proposed": { "masked_payer_id": "PAYER-***-6G78" }
+    },
+    "authentication": {
+      "new_account": { "status": "VALIDATED", "verified_by": "PAYPAL_CALLBACK", "validated_at": "2026-11-10T07:30:00Z" },
+      "old_account": { "status": "PENDING", "verified_by": null, "validated_at": null }
+    },
+    "marketplace_review": { "status": "NOT_REQUIRED_YET", "decision": null },
+    "cooling_off": { "status": "NOT_STARTED", "ends_at": null },
+    "payout_control": { "proposed_destination_usable": false, "hold_reason": "OLD_ACCOUNT_AUTH_REQUIRED" },
+    "ai_assessment": {
+      "status": "AVAILABLE",
+      "reason_category": "NEW_ACCOUNT",
+      "risk_signals": [],
+      "missing_information": ["OLD_ACCOUNT_AUTH"],
+      "recommendation": "CONTINUE_REQUIRED_VERIFICATION",
+      "advisory_only": true
+    },
+    "policy": {
+      "decision": "REQUIRE_OLD_ACCOUNT_AUTH",
+      "reason_codes": ["NEW_ACCOUNT_VALIDATED", "OLD_ACCOUNT_AUTH_PENDING"],
+      "may_activate_proposed_destination": false
+    },
+    "audit_trail": [
+      { "event": "DESTINATION_CHANGE_REQUESTED", "actor": "seller_dave", "timestamp": "2026-11-10T06:00:00Z", "previous_state": null, "new_state": "CHANGE_REQUESTED", "reason": "Seller initiated change", "simulated": false },
+      { "event": "NEW_ACCOUNT_AUTH_VALIDATED", "actor": "system", "timestamp": "2026-11-10T07:30:00Z", "previous_state": "PENDING_NEW_ACCOUNT_AUTH", "new_state": "PENDING_OLD_ACCOUNT_AUTH", "reason": "PayPal callback validated proposed account", "simulated": true }
+    ],
+    "version": 3
+  },
+  {
+    "case_id": "chg_demo_0005",
+    "tenant_id": "marketplace_demo",
+    "seller_id": "seller_eve",
+    "state": "ACTIVE_NEW_DESTINATION",
+    "created_at": "2026-11-01T10:00:00Z",
+    "updated_at": "2026-11-08T10:00:00Z",
+    "reason": {
+      "seller_text": "Migrating to a verified business account.",
+      "category_claimed_by_seller": "NEW_ACCOUNT"
+    },
+    "destinations": {
+      "active": { "masked_payer_id": "PAYER-***-4E22" },
+      "proposed": { "masked_payer_id": "PAYER-***-7H99" }
+    },
+    "authentication": {
+      "new_account": { "status": "VALIDATED", "verified_by": "PAYPAL_CALLBACK", "validated_at": "2026-11-02T11:00:00Z" },
+      "old_account": { "status": "MATCHED", "verified_by": "PAYPAL_CALLBACK", "validated_at": "2026-11-03T09:00:00Z" }
+    },
+    "marketplace_review": { "status": "APPROVED", "decision": "APPROVE" },
+    "cooling_off": { "status": "ELAPSED", "ends_at": "2026-11-08T10:00:00Z" },
+    "payout_control": { "proposed_destination_usable": true, "hold_reason": null },
+    "ai_assessment": {
+      "status": "AVAILABLE",
+      "reason_category": "NEW_ACCOUNT",
+      "risk_signals": [],
+      "missing_information": [],
+      "recommendation": "CONTINUE_REQUIRED_VERIFICATION",
+      "advisory_only": true
+    },
+    "policy": {
+      "decision": "ACTIVATE",
+      "reason_codes": ["COOLING_OFF_ELAPSED", "POLICY_RECHECK_PASSED"],
+      "may_activate_proposed_destination": true
+    },
+    "audit_trail": [
+      { "event": "DESTINATION_CHANGE_REQUESTED", "actor": "seller_eve", "timestamp": "2026-11-01T10:00:00Z", "previous_state": null, "new_state": "CHANGE_REQUESTED", "reason": "Seller initiated change", "simulated": false },
+      { "event": "NEW_ACCOUNT_AUTH_VALIDATED", "actor": "system", "timestamp": "2026-11-02T11:00:00Z", "previous_state": "PENDING_NEW_ACCOUNT_AUTH", "new_state": "PENDING_OLD_ACCOUNT_AUTH", "reason": null, "simulated": false },
+      { "event": "OLD_ACCOUNT_AUTH_MATCHED", "actor": "system", "timestamp": "2026-11-03T09:00:00Z", "previous_state": "PENDING_OLD_ACCOUNT_AUTH", "new_state": "PENDING_REVIEW", "reason": null, "simulated": false },
+      { "event": "DESTINATION_CHANGE_APPROVED", "actor": "operator_maria", "timestamp": "2026-11-04T14:00:00Z", "previous_state": "PENDING_REVIEW", "new_state": "APPROVED_COOLING_OFF", "reason": "Full evidence reviewed.", "simulated": false },
+      { "event": "DESTINATION_CHANGE_ACTIVATED", "actor": "system", "timestamp": "2026-11-08T10:00:00Z", "previous_state": "APPROVED_COOLING_OFF", "new_state": "ACTIVE_NEW_DESTINATION", "reason": "Cooling-off elapsed; policy recheck passed", "simulated": true }
+    ],
+    "version": 6
+  },
+  {
+    "case_id": "chg_demo_0006",
+    "tenant_id": "marketplace_demo",
+    "seller_id": "seller_frank",
+    "state": "EXPIRED",
+    "created_at": "2026-10-25T08:00:00Z",
+    "updated_at": "2026-11-04T08:00:00Z",
+    "reason": {
+      "seller_text": "Want to use a different PayPal.",
+      "category_claimed_by_seller": "NEW_ACCOUNT"
+    },
+    "destinations": {
+      "active": { "masked_payer_id": "PAYER-***-0F11" },
+      "proposed": null
+    },
+    "authentication": {
+      "new_account": { "status": "EXPIRED", "verified_by": null, "validated_at": null },
+      "old_account": { "status": "NOT_STARTED", "verified_by": null, "validated_at": null }
+    },
+    "marketplace_review": { "status": "NOT_REQUIRED_YET", "decision": null },
+    "cooling_off": { "status": "NOT_STARTED", "ends_at": null },
+    "payout_control": { "proposed_destination_usable": false, "hold_reason": "DESTINATION_CHANGE_EXPIRED" },
+    "ai_assessment": null,
+    "policy": {
+      "decision": "EXPIRED",
+      "reason_codes": ["REQUEST_DEADLINE_ELAPSED"],
+      "may_activate_proposed_destination": false
+    },
+    "audit_trail": [
+      { "event": "DESTINATION_CHANGE_REQUESTED", "actor": "seller_frank", "timestamp": "2026-10-25T08:00:00Z", "previous_state": null, "new_state": "CHANGE_REQUESTED", "reason": "Seller initiated change", "simulated": false },
+      { "event": "DESTINATION_CHANGE_EXPIRED", "actor": "system", "timestamp": "2026-11-04T08:00:00Z", "previous_state": "PENDING_NEW_ACCOUNT_AUTH", "new_state": "EXPIRED", "reason": "Request deadline elapsed without completion", "simulated": false }
+    ],
+    "version": 3
+  },
+  {
+    "case_id": "chg_demo_0007",
+    "tenant_id": "marketplace_demo",
+    "seller_id": "seller_grace",
+    "state": "CHANGE_REQUESTED",
+    "created_at": "2026-11-10T15:00:00Z",
+    "updated_at": "2026-11-10T15:00:00Z",
+    "reason": {
+      "seller_text": "I lost access to my old PayPal account and need to set up a new one for receiving payments.",
+      "category_claimed_by_seller": "OLD_ACCOUNT_LOST"
+    },
+    "destinations": {
+      "active": { "masked_payer_id": "PAYER-***-9J33" },
+      "proposed": null
+    },
+    "authentication": {
+      "new_account": { "status": "NOT_STARTED", "verified_by": null, "validated_at": null },
+      "old_account": { "status": "NOT_STARTED", "verified_by": null, "validated_at": null }
+    },
+    "marketplace_review": { "status": "NOT_REQUIRED_YET", "decision": null },
+    "cooling_off": { "status": "NOT_STARTED", "ends_at": null },
+    "payout_control": { "proposed_destination_usable": false, "hold_reason": "CHANGE_REQUESTED_HOLD" },
+    "ai_assessment": {
+      "status": "AVAILABLE",
+      "reason_category": "OLD_ACCOUNT_LOST",
+      "risk_signals": ["OLD_ACCOUNT_UNAVAILABLE"],
+      "missing_information": ["OLD_ACCOUNT_AUTH", "MARKETPLACE_RECOVERY_EVIDENCE"],
+      "recommendation": "ESCALATE_FOR_REVIEW",
+      "advisory_only": true
+    },
+    "policy": {
+      "decision": "HOLD",
+      "reason_codes": ["CHANGE_REQUESTED", "NO_AUTHENTICATION_COMPLETE"],
+      "may_activate_proposed_destination": false
+    },
+    "audit_trail": [
+      { "event": "DESTINATION_CHANGE_REQUESTED", "actor": "seller_grace", "timestamp": "2026-11-10T15:00:00Z", "previous_state": null, "new_state": "CHANGE_REQUESTED", "reason": "Seller initiated change — claims lost old account", "simulated": false }
+    ],
+    "version": 1
+  }
+]

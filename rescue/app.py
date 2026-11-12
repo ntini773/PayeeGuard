@@ -2,6 +2,7 @@
 import argparse
 import fcntl
 import json
+import mimetypes
 import os
 import re
 import secrets
@@ -11,14 +12,20 @@ from decimal import Decimal, InvalidOperation
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlencode, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse, unquote
 from .agent import Agent
 from .config import ROOT, settings
 from .paypal import PayPal, ProbeError, identifier
 from .store import Store, Denied
 from .workflow import DemoPayPal, Workflow
+from .destination_store import DestinationStore
+from .destination_service import DestinationService
+from .destination_policy import Policy
+from .destination_api import DestinationAPI, UnavailableModel
+from .marketplace_payouts import MarketplacePayouts
 
 STATIC = ROOT / 'static'
+UI_DIST = ROOT / 'ui' / 'dist'
 REDIRECT = 'http://127.0.0.1:8765/callback'
 
 
@@ -32,6 +39,12 @@ class Application:
         self.flow = Workflow(store, paypal)
         self.agent = Agent(self.flow, model=model, fixture=fixture)
         self.mode, self.ai_mode = self.flow.mode, 'scripted demo' if fixture else 'NVIDIA'
+        self.destinations = DestinationService(DestinationStore(store), policy=Policy.configured(settings(), self.mode))
+        from .destination_demo import DemoPayoutProvider
+        payout_provider = DemoPayoutProvider(self.destinations.store) if self.mode == 'demo' else paypal
+        self.payouts = MarketplacePayouts(self.destinations, payout_provider)
+        self.destination_api = DestinationAPI(self.destinations, paypal, origin=public_origin, payouts=self.payouts,
+                                              model=UnavailableModel() if fixture else None)
         self.attempts = {}
         self.auth_lock = threading.Lock()
         self.chat_locks = {}
@@ -132,7 +145,7 @@ def handler_for(app):
             self.send_header('Cache-Control', 'no-store')
             self.send_header('X-Content-Type-Options', 'nosniff')
             self.send_header('Referrer-Policy', 'no-referrer')
-            self.send_header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
+            self.send_header('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
             if cookie:
                 self.send_header('Set-Cookie', cookie + ('; Secure' if app.public_origin else ''))
             if app.public_origin:
@@ -143,6 +156,9 @@ def handler_for(app):
             self.wfile.write(content)
 
         def token(self):
+            auth = self.headers.get('Authorization', '')
+            if auth.startswith('Bearer ' + app.store.API_KEY_PREFIX):
+                return auth[7:].strip()          # a marketplace backend key; the cookie path below is unchanged
             cookie = SimpleCookie()
             try:
                 cookie.load(self.headers.get('Cookie', ''))
@@ -158,6 +174,18 @@ def handler_for(app):
             if origin and origin != (app.public_origin or 'http://' + expected):
                 raise Denied('Cross-origin requests are not allowed')
 
+        def v1_error(self, code, status):
+            if urlparse(self.path).path.startswith('/api/v1/'):
+                if status in (401, 403):
+                    try:
+                        principal = app.destinations.store.principal(self.token())
+                        app.destinations.store.denied(principal, code)
+                    except Exception:
+                        pass
+                self.send(status, {'error': {'code': code}, 'correlation_id': secrets.token_hex(16)})
+                return True
+            return False
+
         def do_GET(self):
             try:
                 # Render health probes may use an internal Host. No case data or secrets.
@@ -166,6 +194,29 @@ def handler_for(app):
                                      {'ok': app.store.metadata('mode') == app.mode})
                 self.boundary()
                 url = urlparse(self.path)
+                if url.path.startswith('/api/v1/'):
+                    status, data = app.destination_api.handle('GET', self.path, self.token(), headers=self.headers)
+                    # A browser returning from PayPal (it asks for HTML) goes back to the seller page.
+                    # API clients, which do not ask for HTML, still get the JSON answer.
+                    if url.path == '/api/v1/paypal/callback' and 'text/html' in self.headers.get('Accept', ''):
+                        if status == 200 and isinstance(data.get('case_id'), str):
+                            return self.send(303, b'', 'text/plain', location='/seller?auth=ok&case=' + data['case_id'])
+                        code = data.get('error', {}).get('code', 'ERROR') if isinstance(data.get('error'), dict) else 'ERROR'
+                        return self.send(303, b'', 'text/plain', location='/seller?auth=failed&code=' + re.sub(r'[^A-Z_]', '', str(code))[:40])
+                    return self.send(status, data)
+                if (UI_DIST / 'index.html').is_file() and not (url.path == '/callback' or url.path.startswith('/callback/') or url.path == '/api' or url.path.startswith('/api/') or url.path in ('/app.js', '/style.css')):
+                    decoded = unquote(url.path)
+                    candidate = (UI_DIST / decoded.lstrip('/')).resolve()
+                    if '..' in decoded.split('/') or not candidate.is_relative_to(UI_DIST.resolve()):
+                        return self.send(404, {'error': 'Not found'})
+                    if not candidate.is_file():
+                        if Path(decoded).suffix or decoded.startswith('/assets/'):
+                            return self.send(404, {'error': 'Not found'})
+                        candidate = UI_DIST / 'index.html'
+                    mime = mimetypes.guess_type(str(candidate))[0] or 'application/octet-stream'
+                    if candidate.suffix == '.js':
+                        mime = 'text/javascript'
+                    return self.send(200, candidate.read_bytes(), mime)
                 if url.path in ('/', '/app.js', '/style.css'):
                     filename, mime = {'/': ('index.html', 'text/html; charset=utf-8'),
                                       '/app.js': ('app.js', 'text/javascript; charset=utf-8'),
@@ -189,8 +240,12 @@ def handler_for(app):
                     return self.send(200, app.view(match[1], actor))
                 self.send(404, {'error': 'Not found'})
             except (Denied, ProbeError) as exc:
+                if self.v1_error('AUTH_REQUIRED' if not self.token() else 'REQUEST_DENIED', 401 if not self.token() else 403):
+                    return
                 self.send(403 if isinstance(exc, Denied) else 502, {'error': str(exc)})
             except Exception:
+                if self.v1_error('INTERNAL_ERROR', 500):
+                    return
                 self.send(500, {'error': 'Request failed; no automatic payment retry was started'})
 
         def do_POST(self):
@@ -199,7 +254,8 @@ def handler_for(app):
                 if self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
                     raise Denied('JSON request required')
                 length = int(self.headers.get('Content-Length', '0'))
-                if not 0 < length <= 16384:
+                # Studio's model turns carry its tool list, so that one route may be larger. Everything else stays at 16 KB.
+                if not 0 < length <= (262144 if urlparse(self.path).path == '/api/v1/dashboard-llm' else 16384):
                     raise Denied('Invalid request size')
                 body = json.loads(self.rfile.read(length))
                 if not isinstance(body, dict):
@@ -210,20 +266,29 @@ def handler_for(app):
                     return self.send(200, {'ok': True}, cookie=f'rescue_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=28800')
                 actor = app.store.session(self.token())
                 csrf = self.headers.get('X-CSRF-Token', '')
-                if not secrets.compare_digest(csrf.encode(), actor['csrf'].encode()):
+                if not actor.get('api_key') and not secrets.compare_digest(csrf.encode(), actor['csrf'].encode()):
                     raise Denied('Invalid request token; reload the page')
                 if path == '/api/logout':
                     app.store.logout(self.token())
                     return self.send(200, {'ok': True}, cookie='rescue_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0')
+                if path.startswith('/api/v1/'):
+                    status, data = app.destination_api.handle('POST', self.path, self.token(), body, self.headers)
+                    return self.send(status, data)
                 match = re.fullmatch(r'/api/cases/([A-Za-z0-9_-]+)/([a-z-]+)', path)
                 if match:
                     return self.send(200, app.action(match[1], match[2], actor, body))
                 self.send(404, {'error': 'Not found'})
             except (Denied, ProbeError) as exc:
+                if self.v1_error('AUTH_REQUIRED' if not self.token() else 'REQUEST_DENIED', 401 if not self.token() else 403):
+                    return
                 self.send(403 if isinstance(exc, Denied) else 502, {'error': str(exc)})
             except (ValueError, TypeError):
+                if self.v1_error('INVALID_REQUEST', 400):
+                    return
                 self.send(400, {'error': 'Invalid request'})
             except Exception:
+                if self.v1_error('INTERNAL_ERROR', 500):
+                    return
                 self.send(500, {'error': 'Request failed; no automatic payment retry was started'})
     return Handler
 
@@ -268,7 +333,7 @@ def main():
         print(credential_path)
         return
     if store.metadata('mode') != args.mode:
-        parser.error('Initialize this mode first with configure-app or configure-demo')
+        parser.error('Initialize this mode first: configure-demo for demo mode, or, for the judge sandbox, run `python -m rescue.judge_setup --directory <runtime dir>` (an empty database file left by an earlier serve must be deleted first)')
     if args.ai == 'fixture' and args.mode != 'demo':
         parser.error('Fixture AI is only allowed in demo mode')
     # One server per database: prevents separate processes bypassing in-process case locks.
@@ -288,7 +353,9 @@ def main():
             raise SystemExit(f'Cannot open {bind}:{port}. Stop any other listener, or run in a terminal that permits sockets.') from None
         with server:
             print(f'Payout Rescue: {public_origin or REDIRECT.removesuffix("/callback")} — {args.mode}; AI: {app.ai_mode}', flush=True)
-            print('Local account credentials: ' + str(runtime / (args.mode + '-accounts.json')), flush=True)
+            accounts_file = runtime / (args.mode + '-accounts.json')
+            if accounts_file.exists():
+                print('Local account credentials: ' + str(accounts_file), flush=True)
             try:
                 server.serve_forever()
             except KeyboardInterrupt:

@@ -1,40 +1,50 @@
-# Prepared blueprint; no service is deployed by adding this file.
+# Render blueprint for the hosted judge demo. Nothing is deployed by adding this file.
+# Secrets use `sync: false`: Render asks for them in the dashboard and never stores them in git.
 services:
   - type: web
-    name: claimpal
+    name: payeeguard
     runtime: python
-    plan: starter
-    numInstances: 1
-    buildCommand: pip install -r deploy/requirements.txt
+    plan: starter            # a persistent disk needs a paid instance
+    numInstances: 1          # one process per database
+    buildCommand: >-
+      pip install -r deploy/requirements.txt &&
+      cd ui && npm ci && NODE_OPTIONS=--max-old-space-size=4096 npm run build
     startCommand: python deploy/start.py
     healthCheckPath: /healthz
     autoDeployTrigger: off
     disk:
-      name: payout-rescue-state
+      name: payeeguard-state     # holds app-sandbox.sqlite3, so the judge accounts survive restarts and redeploys
       mountPath: /var/data/rescue
       sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
+      - key: NODE_VERSION
+        value: 22
       - key: RESCUE_RUNTIME_DIR
         value: /var/data/rescue
-      - key: RESCUE_PUBLIC_ORIGIN
+      - key: RESCUE_PUBLIC_ORIGIN       # exactly https://<service>.onrender.com
         sync: false
-      - key: RESCUE_MODE
-        value: sandbox
-      - key: RESCUE_AI
-        value: nvidia
       - key: NVIDIA_API_KEY
         sync: false
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET
         sync: false
-      - key: RESCUE_ITEM_ID
+      - key: RESCUE_STUDIO_MODEL        # AG Studio AI Assistant chat model (same NVIDIA key)
+        value: deepseek-ai/deepseek-v4.1-flash
+      - key: RESCUE_PAYPAL_SCOPES       # needed so Log in with PayPal returns name and country (name and country checks)
+        value: openid profile address https://uri.paypal.com/services/paypalattributes
+      - key: VITE_AG_STUDIO_LICENSE     # build time: AG Studio trial key
         sync: false
-      - key: RESCUE_EXPECTED_PAYER_ID
+      # Judge accounts: read on the FIRST start only, then the database on the disk is the source of truth.
+      - key: JUDGE_SELLER_PASSWORD
         sync: false
-      - key: RESCUE_AMOUNT
-        value: '0.01'
-      - key: RESCUE_CURRENCY
-        value: USD
+      - key: JUDGE_OPERATOR_PASSWORD
+        sync: false
+      - key: JUDGE_ACTIVE_PAYER_ID      # PayPal payer ID of the shared current account (A)
+        sync: false
+      - key: JUDGE_SELLER_LEGAL_NAME    # name on the new account (B), so the name check passes
+        sync: false
+      - key: JUDGE_SELLER_COUNTRY
+        sync: false

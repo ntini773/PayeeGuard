@@ -1,0 +1,16 @@
+/* Final polish. One sans family everywhere; monospace only for IDs and masked accounts; quieter small labels. */
+html:root, html [data-theme] { --font-mono: var(--font-sans); }
+html body [class*="payerId"], html body [class*="caseId"], html body code, html body pre, html body kbd { font-family: 'Geist Mono', ui-monospace, monospace; letter-spacing: 0; }
+html body [class*="payerIdProposed"] { font-family: var(--font-sans); letter-spacing: 0; font-weight: 600; }
+/* small uppercase labels: sentence case, normal spacing */
+html body [class*="cardBadge"], html body [class*="summaryLabel"], html body [class*="advisory"], html body [class*="mark"], html body [class*="pill"], html body [class*="paypalTag"],
+html body [class*="stepState"], html body [class*="feedLabel"], html body [class*="eyebrow"] { text-transform: none; letter-spacing: 0.01em; font-family: var(--font-sans); }
+html body [class*="cardBadge"], html body [class*="summaryLabel"] { font-size: var(--text-xs); font-weight: 600; }
+html body [class*="aiCard"] strong, html body [class*="summary"] strong { font-weight: 600; }
+/* Form controls and list text must never fall back to the browser default serif. */
+html body label, html body li, html body input, html body textarea, html body select, html body button, html body td, html body th { font-family: var(--font-sans); }
+/* Studio's AI Assistant needs edit mode, which also opens three editor panels. They are not needed here (the dashboards are
+   view-only) and crowd the charts, so only the assistant panel and the canvas are shown. */
+[data-testid="studio-dashboard"] .ag-studio-filters-pane,
+[data-testid="studio-dashboard"] .ag-studio-edit-panel,
+[data-testid="studio-dashboard"] .ag-studio-data-panel { display: none !important; }

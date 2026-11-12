@@ -1,0 +1,274 @@
+.queuePage {
+  padding: var(--space-6) clamp(16px, 4vw, 36px);
+  max-width: 1300px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.pageHeader h1 {
+  font-size: var(--text-2xl);
+  letter-spacing: -0.02em;
+}
+
+.count {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Dev State Switcher Drawer / Strip */
+.devDrawer {
+  background: var(--night-2);
+  border: 1px dashed rgba(var(--brand-rgb), 0.4);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: var(--space-4);
+  font-size: var(--text-xs);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.devHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  width: 100%;
+  color: var(--gold-accent);
+  font-weight: 600;
+  padding: 0;
+}
+
+.devButtons {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(var(--brand-rgb), 0.2);
+}
+
+.devBtn {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(var(--sunk-rgb), 0.6);
+  border: 1px solid var(--line-dark);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.devBtn:hover {
+  background: var(--night-3);
+  color: var(--text);
+  border-color: var(--sky);
+}
+
+/* Filters bar */
+.filters {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 180px;
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  background: var(--night-2);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.searchInput:focus {
+  border-color: var(--sky);
+  box-shadow: 0 0 12px rgba(var(--info-rgb), 0.25);
+}
+
+.searchInput::placeholder {
+  color: var(--muted-dark);
+}
+
+.filterSelect {
+  height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  background: var(--night-2);
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+}
+
+.filterSelect:focus {
+  border-color: var(--sky);
+}
+
+/* Table wrapper & Table */
+.tableWrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-dark);
+  background: var(--night-2);
+  box-sizing: border-box;
+}
+
+.table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  padding: 12px 16px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  background: rgba(var(--sunk-rgb), 0.6);
+  border-bottom: 1px solid var(--line-dark);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 12px 16px;
+  font-size: var(--text-xs);
+  border-bottom: 1px solid rgba(var(--line-rgb), 0.4);
+  vertical-align: middle;
+}
+
+.table tbody tr {
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.table tbody tr:hover {
+  background: rgba(var(--info-rgb), 0.08);
+}
+
+.selectedRow {
+  background: rgba(var(--info-rgb), 0.15) !important;
+}
+
+.monoCaseId {
+  font-family: var(--font-mono);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.sellerId {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.sellerText {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  max-width: 240px;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monoId {
+  font-family: var(--font-mono);
+  color: var(--muted);
+}
+
+.monoProposedId {
+  font-family: var(--font-mono);
+  color: var(--gold-accent);
+  font-weight: 600;
+}
+
+.viewModeToggle {
+  display: inline-flex;
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-pill);
+  padding: 2px;
+  background: var(--night-2);
+}
+
+.toggleBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.toggleBtnActive {
+  background: var(--night-3);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--sky);
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .queuePage {
+    padding: var(--space-4) 14px;
+  }
+  .filters {
+    flex-direction: column;
+  }
+  .filterSelect {
+    width: 100%;
+  }
+}
+
+.queuePage { max-width: 1440px; padding: 26px var(--gutter) 36px; }
+.pageHeader { margin: 28px 0 24px; gap: 20px; }
+.pageHeader h1 { font-weight: 500; letter-spacing: -.04em; }
+.searchInput, .filterSelect { border-radius: 6px; background: white; height: 43px; font-size: var(--text-xs); }
+.searchInput:focus { box-shadow: 0 0 0 3px #eaf0e1; }
+.viewModeToggle { border-radius: 7px; padding: 4px; background: var(--workspace-soft); border-color: var(--line-dark); }
+.toggleBtn { border-radius: 4px; padding: 7px 12px; font-size: var(--text-xs); }
+.toggleBtnActive { background: white; color: var(--workspace-strong); box-shadow: 0 1px 4px #21301c0a; }
+.table th { background: var(--workspace-soft); color: #506548; font-family: var(--font-sans); }
+@media(max-width:700px) { .queuePage { padding-top: 15px; } .pageHeader { align-items: stretch; } .viewModeToggle { overflow: auto; max-width: 100%; } }

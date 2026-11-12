@@ -1,0 +1,26 @@
+.panel { margin-bottom: 20px; padding: 22px 24px; background: var(--workspace-card); border: 1px solid var(--line-dark); border-radius: 10px; }
+.heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 14px; font-weight: 600; margin-bottom: 24px; }
+.status { font-size: var(--text-xs); font-weight: 400; color: var(--muted); }
+.timeline { list-style: none; margin: 0; padding: 0; }
+.step { position: relative; display: grid; grid-template-columns: 30px minmax(0,1fr); gap: 16px; padding-bottom: 24px; }
+.step::after { content: ''; position: absolute; width: 2px; top: 30px; bottom: 0; left: 14px; background: var(--line-dark); }
+.step[data-state="done"]::after { background: #98bba2; }
+.step:last-child { padding-bottom: 0; }
+.step:last-child::after { display: none; }
+.node { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--line-dark); border-radius: 50%; background: white; color: var(--muted); z-index: 1; }
+.step[data-state="done"] .node { background: #34704b; border-color: #34704b; color: white; }
+.step[data-state="running"] .node { background: white; color: var(--accent-text); border-color: var(--accent-text); animation: currentPulse 1.8s ease-in-out infinite; }
+.step[data-state="error"] .node, .step[data-state="blocked"] .node { color: var(--bad-text); background: #fff1ef; border-color: #dcaaa9; }
+.spinner { animation: stepSpin 1s linear infinite; }
+.content { min-width: 0; padding-top: 3px; }
+.titleRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.titleRow strong { font-size: 15px; line-height: 1.55; font-weight: 600; overflow-wrap: anywhere; }
+.detail { margin: 5px 0 0; color: var(--muted); font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+.paypalTag { display: inline-flex; gap: 5px; align-items: center; max-width: 100%; color: var(--accent-text); border: 1px solid var(--workspace-border); border-radius: 5px; padding: 2px 7px; font-size: var(--text-xs); line-height: 1.6; }
+.paypalTag svg { flex-shrink: 0; }
+.current { display: block; margin-top: 5px; font-size: var(--text-xs); color: var(--muted); }
+@keyframes stepSpin { to { transform: rotate(360deg); } }
+@keyframes currentPulse { 50% { box-shadow: 0 0 0 5px rgba(var(--info-rgb), .12); } }
+:global(.reduced-motion) .spinner, :global(.reduced-motion) .node { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .spinner, .node { animation: none !important; } }
+@media (max-width: 600px) { .panel { padding: 18px 14px; } .step { gap: 12px; } }

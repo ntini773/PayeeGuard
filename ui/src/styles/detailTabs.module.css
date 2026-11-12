@@ -1,0 +1,310 @@
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.card {
+  background: var(--night-2);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.monoTag {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  background: rgba(var(--tint-rgb), 0.05);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.trustBadge {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ok-text);
+  background: rgba(31, 169, 113, 0.15);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(31, 169, 113, 0.35);
+}
+
+.policyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+
+.fieldLabel {
+  display: block;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.decisionValue {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-md);
+}
+
+.rawCode {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.chipsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.reasonChip {
+  font-size: var(--text-xs);
+  background: rgba(var(--info-rgb), 0.12);
+  color: var(--accent-text);
+  border: 1px solid rgba(var(--info-rgb), 0.3);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+.reasonChipRisk { background: #FDE8E9; color: #8A1C22; border-color: #E9A9AD; }
+.reasonChipOk { background: #e8f0dd; color: #1f5d3b; border-color: #b7d4a6; }
+
+.holdNotice {
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 14px;
+  background: rgba(var(--brand-rgb), 0.1);
+  border: 1px solid rgba(var(--brand-rgb), 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--gold-ink);
+  font-size: var(--text-xs);
+}
+
+.evidenceList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.evidenceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(var(--sunk-rgb), 0.5);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-sm);
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.evidenceTitle {
+  font-size: var(--text-sm);
+  color: var(--text);
+  display: block;
+}
+
+.evidenceSub {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin: 2px 0 0;
+}
+
+.authStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+}
+
+.subMeta {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+/* Seller Claim Card */
+.claimCard {
+  background: var(--night-2);
+  border: 2px dashed rgba(var(--brand-rgb), 0.4);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.claimHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.untrustedTag {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  color: var(--gold-accent);
+  background: rgba(var(--brand-rgb), 0.12);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed rgba(var(--brand-rgb), 0.4);
+}
+
+.claimText {
+  font-size: var(--text-md);
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.5;
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--gold);
+}
+
+.claimMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.claimMeta code {
+  color: var(--gold-accent);
+  background: rgba(var(--brand-rgb), 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* AI Card */
+.aiCard {
+  background: var(--night-2);
+  border: 1.5px solid var(--line-dark);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+.aiHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.advisoryTag {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  color: var(--accent-text);
+  background: rgba(var(--info-rgb), 0.15);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(var(--info-rgb), 0.35);
+}
+
+.aiSafetyBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 12px;
+  background: rgba(var(--info-rgb), 0.08);
+  border: 1px solid rgba(var(--info-rgb), 0.25);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  line-height: 1.4;
+  margin-bottom: var(--space-4);
+}
+
+.aiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+.aiValue {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.aiRecommendation {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--accent-text);
+}
+
+.riskList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.riskItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  background: rgba(217, 54, 62, 0.1);
+  border: 1px solid rgba(217, 54, 62, 0.25);
+  border-radius: var(--radius-sm);
+  color: var(--bad-text);
+  font-size: var(--text-xs);
+}
+
+.missingList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.missingItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  background: rgba(var(--brand-rgb), 0.08);
+  border: 1px solid rgba(var(--brand-rgb), 0.25);
+  border-radius: var(--radius-sm);
+  color: var(--gold-ink);
+  font-size: var(--text-xs);
+}
+
+/* Icon color utilities */
+.iconTeal { color: var(--sky); }
+.iconAmber { color: var(--gold-accent); }
+.iconSky { color: var(--sky); }
+.iconOk { color: var(--ok); }
+.iconPending { color: var(--sky); }
+.iconBad { color: var(--bad); }
+.iconHeld { color: var(--sky); }
+.textOk { color: var(--ok); font-weight: 600; }
+.textPending { color: var(--sky); font-weight: 600; }
+.textBad { color: var(--bad); font-weight: 600; }
+
+.card { padding: 25px; }
+.claimCard { border-width: 1px; border-color: #d5be91; background: #fffdf8; }
+.untrustedTag { color: #87642f; background: #faf3e5; border-color: #dcc59c; font-family: var(--font-sans); }
+.claimText { border-left-color: #c0a36c; }
+.aiSafetyBanner { border-style: solid; }

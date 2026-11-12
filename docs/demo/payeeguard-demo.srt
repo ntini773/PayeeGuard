@@ -1,0 +1,108 @@
+1
+00:00:00,350 --> 00:00:05,391
+Imagine you sell on a marketplace, and your earnings are paid to your PayPal account.
+
+2
+00:00:05,691 --> 00:00:12,796
+One day someone takes over your marketplace login. They don't touch your money. They just change where your future earnings go.
+
+3
+00:00:13,096 --> 00:00:20,385
+A PayPal login proves that someone controls an account. It doesn't prove that the account is entitled to your earnings.
+
+4
+00:00:20,685 --> 00:00:27,267
+PayeeGuard closes it. Rules decide, AI recommends, and a person approves.
+
+5
+00:00:29,070 --> 00:00:38,500
+Meet a genuine seller. They are starting a new business, or they lost access to the old PayPal account, and they want their earnings paid to a new one.
+
+6
+00:00:38,800 --> 00:00:45,200
+They sign in and chat with Guardy, a helper powered by an NVIDIA model, about why.
+
+7
+00:00:45,500 --> 00:00:52,683
+The seller explains, and Guardy offers to fill the request in. Nothing is sent until the seller says yes.
+
+8
+00:00:52,983 --> 00:00:57,816
+The seller says yes, and the request fills in. Then they submit it.
+
+9
+00:00:58,116 --> 00:01:04,882
+They prove both PayPal accounts by logging in on PayPal's sandbox: the new one first, then the current one.
+
+10
+00:01:05,182 --> 00:01:10,093
+While the change waits, new sales still go to the current account.
+
+11
+00:01:10,393 --> 00:01:17,759
+The care team opens the case. An AI recommendation is already waiting. It read the case and checked PayPal.
+
+12
+00:01:18,059 --> 00:01:21,168
+Approval waits for the marketplace's own evidence.
+
+13
+00:01:21,468 --> 00:01:26,718
+Once it does, care approves, and after a safety wait the new account starts getting paid.
+
+14
+00:01:27,018 --> 00:01:33,836
+A clean change can also take a fast lane, where manual review is skipped. The safety wait still runs.
+
+15
+00:01:36,069 --> 00:01:41,346
+Now a stolen login. The fraudster even uses the same name on the new PayPal account.
+
+16
+00:01:41,646 --> 00:01:45,356
+But the account that logs in as the current one isn't the seller's.
+
+17
+00:01:45,656 --> 00:01:54,563
+The AI summary lists what the backend found: a different account, a new device, and a fresh password reset. Approval is blocked.
+
+18
+00:01:54,863 --> 00:01:59,905
+The care team rejects it, and every payout still goes to the real account.
+
+19
+00:02:00,589 --> 00:02:05,683
+Both sides have dashboards, built with AG Grid and AG Studio.
+
+20
+00:02:05,983 --> 00:02:10,398
+The care team sees risk flags and change requests over time.
+
+21
+00:02:10,698 --> 00:02:18,535
+The AG Studio AI Assistant button opens a chat. Type what you want in plain words, and a custom chart appears.
+
+22
+00:02:18,835 --> 00:02:24,112
+The seller sees income over past days, and can ask for just the last two days.
+
+23
+00:02:24,412 --> 00:02:30,916
+The API is documented right in the app: the case schema, and every endpoint.
+
+24
+00:02:31,780 --> 00:02:38,467
+A Postman run checks all of it: forty-six requests and sixty-two checks, without failures.
+
+25
+00:02:38,817 --> 00:02:46,183
+Built on PayPal's sandbox, with an NVIDIA model, AG Grid, AG Studio and Postman.
+
+26
+00:02:46,483 --> 00:02:50,846
+The APIMatic plugin helped us review our PayPal client.
+
+27
+00:02:51,146 --> 00:02:58,094
+Marketplace signals and trend charts are simulated. The AI recommends, and the rules and a person decide.
+

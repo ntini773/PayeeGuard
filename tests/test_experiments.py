@@ -85,7 +85,11 @@ class ExperimentsTest(unittest.TestCase):
     def test_identity_requires_scope_attributes_and_discards_tokens(self):
         api = PayPal({})
         api.call = Mock(side_effect=[{'access_token': 'secret'}, {'payer_id': 'P1', 'verified_account': True, 'email': 'private'}])
-        self.assertEqual(api.identity('code', 'callback'), {'payer_id': 'P1', 'verified_account': True})
+        result = api.identity('code', 'callback')
+        self.assertEqual((result['payer_id'], result['verified_account']), ('P1', True))
+        self.assertNotIn('private', str(result))  # the email is never returned, and neither is any token
+        self.assertNotIn('secret', str(result))
+        self.assertEqual(set(result['attributes']), {'account_type', 'account_creation_date', 'name', 'address'})
         self.assertEqual(api.call.call_args.kwargs['token'], 'secret')
         api.call.side_effect = [{'access_token': 'secret'}, {'user_id': 'not-a-payer-id'}]
         with self.assertRaises(ProbeError):

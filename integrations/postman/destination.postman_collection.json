@@ -1,0 +1,1586 @@
+{
+ "info": {
+  "name": "Payout Rescue destination API \u2014 disposable fixture",
+  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+ },
+ "variable": [
+  {
+   "key": "baseUrl",
+   "value": "http://127.0.0.1:8765"
+  }
+ ],
+ "event": [
+  {
+   "listen": "prerequest",
+   "script": {
+    "type": "text/javascript",
+    "exec": [
+     "if(pm.variables.get(\"baseUrl\")!==\"http://127.0.0.1:8765\"){throw new Error(\"Disposable local fixture only\");}"
+    ]
+   }
+  }
+ ],
+ "item": [
+  {
+   "name": "Confirm isolated fixture",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/session",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "const d=pm.response.json(); if(d.mode!==\"demo\"||d.ai_mode!==\"scripted demo\"){pm.execution.setNextRequest(null);throw new Error(\"Requires isolated demo\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Anonymous denied",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/chg_00000000000000000000000000000000",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 401\",()=>pm.response.to.have.status(401));",
+       "if(pm.response.code!==401){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Login creator",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/login",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"username\": \"creator\", \"password\": \"{{creatorPassword}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Session creator",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/session",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.collectionVariables.set(\"csrf\",pm.response.json().csrf);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Create pending request",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"reason_text\": \"I opened a new account\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 201\",()=>pm.response.to.have.status(201));",
+       "if(pm.response.code!==201){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "const d=pm.response.json(); pm.collectionVariables.set(\"caseId\",d.case_id); pm.test(\"Held pending request\",()=>{pm.expect(d.state).to.eql(\"CHANGE_REQUESTED\");pm.expect(d.payout_control.proposed_destination_usable).to.eql(false);});"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Idempotent replay",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"reason_text\": \"I opened a new account\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 201\",()=>pm.response.to.have.status(201));",
+       "if(pm.response.code!==201){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.test(\"Same case\",()=>pm.expect(pm.response.json().case_id).to.eql(pm.collectionVariables.get(\"caseId\")));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Payload conflict",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"reason_text\": \"another reason\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 409\",()=>pm.response.to.have.status(409));",
+       "if(pm.response.code!==409){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Read status",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.test(\"Correlation ID\",()=>pm.expect(pm.response.json().correlation_id).to.be.a(\"string\"));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Read /summary",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/summary",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.test(\"Correlation ID\",()=>pm.expect(pm.response.json().correlation_id).to.be.a(\"string\"));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Read /events",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/events",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.test(\"Correlation ID\",()=>pm.expect(pm.response.json().correlation_id).to.be.a(\"string\"));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Message",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/messages",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-message-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"message\": \"Please explain the checks\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Message replay",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/messages",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-message-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"message\": \"Please explain the checks\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Reject authority injection",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"reason_text\": \"change\", \"approved\": true, \"payer_id\": \"UNTRUSTED\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));",
+       "if(pm.response.code!==400){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Login staff",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/login",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"username\": \"staff\", \"password\": \"{{staffPassword}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Session staff",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/session",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.collectionVariables.set(\"csrf\",pm.response.json().csrf);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Staff cannot initiate",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"reason_text\": \"I opened a new account\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 403\",()=>pm.response.to.have.status(403));",
+       "if(pm.response.code!==403){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Login external",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/login",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"username\": \"external\", \"password\": \"{{externalPassword}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Session external",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/session",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.collectionVariables.set(\"csrf\",pm.response.json().csrf);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "External cannot review",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/review",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"decision\": \"APPROVE\", \"reason\": \"untrusted\", \"expected_version\": 1}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 403\",()=>pm.response.to.have.status(403));",
+       "if(pm.response.code!==403){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "No activation endpoint",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/activate",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 404\",()=>pm.response.to.have.status(404));",
+       "if(pm.response.code!==404){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Login operator",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/login",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"username\": \"operator\", \"password\": \"{{operatorPassword}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Session operator",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/session",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.collectionVariables.set(\"csrf\",pm.response.json().csrf);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Operator cannot skip evidence",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/review",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"decision\": \"APPROVE\", \"reason\": \"missing evidence\", \"expected_version\": 2}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 409\",()=>pm.response.to.have.status(409));",
+       "if(pm.response.code!==409){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Scoped case queue",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.test(\"Scoped queue\",()=>pm.expect(pm.response.json().cases.length).to.eql(1));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Reject payout destination injection",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/marketplace-payouts/earning-1/execute",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"payer_id\": \"UNTRUSTED\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));",
+       "if(pm.response.code!==400){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Execute stored synthetic earning through gate",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/marketplace-payouts/earning-1/execute",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "const op=pm.response.json().operation;pm.test(\"Simulation only\",()=>pm.expect(op.simulation).to.eql(true));pm.collectionVariables.set(\"batchId\",op.sender_batch_id);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Same earning cannot pay twice",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/marketplace-payouts/earning-1/execute",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.test(\"Same durable operation\",()=>pm.expect(pm.response.json().operation.sender_batch_id).to.eql(pm.collectionVariables.get(\"batchId\")));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Login blocked-seller reviewer",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/login",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"username\": \"blockedOperator\", \"password\": \"{{blockedOperatorPassword}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Blocked-seller session",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/session",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.collectionVariables.set(\"csrf\",pm.response.json().csrf);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Cross-seller read denied",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 404\",()=>pm.response.to.have.status(404));",
+       "if(pm.response.code!==404){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Compromise gate blocks payout",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/marketplace-payouts/blocked-earning/execute",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 409\",()=>pm.response.to.have.status(409));",
+       "if(pm.response.code!==409){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.test(\"Backend hold\",()=>pm.expect(pm.response.json().error.code).to.eql(\"PAYOUT_HELD\"));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Login creator (extra checks)",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/login",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"username\": \"creator\", \"password\": \"{{creatorPassword}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Session creator (extra checks)",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/session",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.collectionVariables.set(\"csrf\",pm.response.json().csrf);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Seller view hides reviewer-only fields",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "const b=pm.response.json();",
+       "pm.test(\"No AI assessment for the seller\",()=>pm.expect(b.ai_assessment).to.equal(null));",
+       "pm.test(\"No risk flags, facts or fast-lane status for the seller\",()=>{[\"risk_findings\",\"risk_blocks_approval\",\"risk_signals_source\",\"paypal_facts\",\"fast_lane\"].forEach(k=>pm.expect(b).to.not.have.property(k));});"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Seller cannot record evidence",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/evidence",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"kind\": \"SELLER_ENTITLEMENT\", \"reference\": \"record-1\", \"reason\": \"Reviewed marketplace records\", \"accepted\": true, \"expected_version\": 1}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 403\",()=>pm.response.to.have.status(403));",
+       "if(pm.response.code!==403){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Seller help chat answers without any case data",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/seller-guide",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"messages\": [{\"role\": \"user\", \"text\": \"I opened a new PayPal account\"}]}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.test(\"Reply is text\",()=>pm.expect(pm.response.json().reply).to.be.a(\"string\").and.not.empty);",
+       "pm.test(\"Source is labelled\",()=>pm.expect([\"ai\",\"scripted\"]).to.include(pm.response.json().source));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Seller help chat rejects bad history",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/seller-guide",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"messages\": []}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));",
+       "if(pm.response.code!==400){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Login operator (extra checks)",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/login",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"username\": \"operator\", \"password\": \"{{operatorPassword}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Session operator (extra checks)",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/session",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.collectionVariables.set(\"csrf\",pm.response.json().csrf);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Reviewer sees risk flags, facts and fast-lane status",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "const b=pm.response.json();",
+       "pm.test(\"Risk fields present\",()=>{pm.expect(b.risk_findings).to.be.an(\"array\");pm.expect(b.risk_blocks_approval).to.be.a(\"boolean\");pm.expect(b.paypal_facts).to.be.an(\"object\");});",
+       "pm.test(\"Fast lane is off by default\",()=>pm.expect(b.fast_lane.eligible).to.equal(false));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Evidence needs a case that waits for review",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/evidence",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"kind\": \"SELLER_ENTITLEMENT\", \"reference\": \"record-1\", \"reason\": \"Reviewed marketplace records\", \"accepted\": true, \"expected_version\": 1}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 409\",()=>pm.response.to.have.status(409));",
+       "if(pm.response.code!==409){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "AI review rejects an unexpected body",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/ai-review",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"unexpected\": 1}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 400\",()=>pm.response.to.have.status(400));",
+       "if(pm.response.code!==400){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Login creator (extra checks)",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/login",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{\"username\": \"creator\", \"password\": \"{{creatorPassword}}\"}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Session creator (extra checks)",
+   "request": {
+    "method": "GET",
+    "url": "{{baseUrl}}/api/session",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     }
+    ]
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.collectionVariables.set(\"csrf\",pm.response.json().csrf);"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Seller cancels the request",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/cancel",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 200\",()=>pm.response.to.have.status(200));",
+       "if(pm.response.code!==200){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}",
+       "pm.test(\"Cancelled\",()=>pm.expect(pm.response.json().state).to.equal(\"REJECTED\"));"
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "Cancelling twice is refused",
+   "request": {
+    "method": "POST",
+    "url": "{{baseUrl}}/api/v1/destination-change-requests/{{caseId}}/cancel",
+    "header": [
+     {
+      "key": "X-CSRF-Token",
+      "value": "{{csrf}}"
+     },
+     {
+      "key": "Idempotency-Key",
+      "value": "pg-request-1"
+     },
+     {
+      "key": "Content-Type",
+      "value": "application/json"
+     }
+    ],
+    "body": {
+     "mode": "raw",
+     "raw": "{}"
+    }
+   },
+   "event": [
+    {
+     "listen": "test",
+     "script": {
+      "type": "text/javascript",
+      "exec": [
+       "pm.test(\"HTTP 409\",()=>pm.response.to.have.status(409));",
+       "if(pm.response.code!==409){pm.execution.setNextRequest(null);throw new Error(\"Unexpected status\");}"
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

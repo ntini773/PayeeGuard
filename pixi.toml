@@ -12,6 +12,7 @@ nodejs = "22.*" # Matches the reusable setup.md environment and lock.
 langchain-nvidia-ai-endpoints = "==1.4.3"
 
 [tasks]
+seed-destination-demo = "python -m rescue.destination_demo"
 test-python = "python -m unittest discover -s tests -v"
 test-ui = "node tests/test_ui.cjs"
 test = { depends-on = ["test-python", "test-ui"] }
@@ -23,5 +24,8 @@ configure-demo = "python -m rescue.app init --mode demo"
 start = "python -m rescue.app serve --mode sandbox"
 demo = "python -m rescue.app serve --mode demo --ai fixture"
 demo-ai = "python -m rescue.app serve --mode demo --ai nvidia"
+judge-setup = "python -m rescue.judge_setup --directory .runtime/judge"
+judge-serve = "python -m rescue.app serve --mode sandbox --ai nvidia --runtime-dir .runtime/judge"
 evaluate-agent = "python -m rescue.evaluate"
+evaluate-investigator = "python -m rescue.investigator_eval"
 test-postman = "python integrations/postman/run.py"
