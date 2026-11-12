@@ -48,6 +48,9 @@ The first time PayPal sees B or T for this app it shows a consent page. Press **
 
 ## 4. Local run
 
+**Keys you need to get (all free):** one **NVIDIA API key** from [build.nvidia.com](https://build.nvidia.com) (it covers every AI feature, see [`docs/MODELS.md`](MODELS.md)), and a **PayPal sandbox app** (Client ID and Secret from developer.paypal.com). An AG Studio trial key is optional. No other key is needed.
+
+
 ```sh
 pixi install
 cd ui && npm ci && NODE_OPTIONS=--max-old-space-size=6144 npm run build && cd ..

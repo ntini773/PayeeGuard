@@ -10,7 +10,7 @@ import json
 import re
 
 # Native Studio mode (?studioTools=1) needs a stronger model than the small default. Same NVIDIA key. Override with RESCUE_STUDIO_MODEL.
-# mistral-large gave valid tool calls in testing. deepseek-v4.1-flash did too, but its free endpoint timed out on 2026-11-12.
+# mistral-large gave valid tool calls in testing. See docs/MODELS.md for the measured behaviour.
 DEFAULT_STUDIO_MODEL = 'mistralai/mistral-large-4-1t-a52b'
 from urllib import error, request
 
